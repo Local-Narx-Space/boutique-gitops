@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-staging
+  namespace: argocd
+spec:
+  sourceRepos:
+  - https://github.com/subhankar12-spec/boutique-gitops.git
+  destinations:
+  - namespace: boutique-staging
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-staging
+  namespace: argocd
+spec:
+  project: boutique-staging
+  source:
+    repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+    targetRevision: main
+    path: environments/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: boutique-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m

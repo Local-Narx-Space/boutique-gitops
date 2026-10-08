@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: boutique-budget
+  namespace: boutique-dev
+spec:
+  hard:
+    limits.cpu: '16'
+    limits.memory: 16Gi
+    pods: '30'
+    requests.cpu: '8'
+    requests.memory: 8Gi

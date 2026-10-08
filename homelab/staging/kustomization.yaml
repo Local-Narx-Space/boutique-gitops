@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: boutique-staging
+resources:
+- ../../environments/staging
+- ../../dependencies/homelab
+images:
+- name: ghcr.io/subhankar12-spec/boutique-frontend
+  newName: boutique-frontend
+  newTag: local
+- name: ghcr.io/subhankar12-spec/boutique-catalogue
+  newName: boutique-catalogue
+  newTag: local
+- name: ghcr.io/subhankar12-spec/boutique-cart
+  newName: boutique-cart
+  newTag: local
+- name: ghcr.io/subhankar12-spec/boutique-orders
+  newName: boutique-orders
+  newTag: local
+patches:
+- patch: "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: frontend\nspec:\n\
+    \  template:\n    spec:\n      containers:\n      - name: frontend\n        env:\n\
+    \        - name: PUBLIC_ORIGIN\n          value: http://localhost:8080\n     \
+    \   - name: COOKIE_SECURE\n          value: 'false'\n"
