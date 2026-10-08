@@ -1,0 +1,205 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-grafana
+  namespace: monitoring
+data:
+  datasources.yml: "apiVersion: 1\ndatasources:\n- access: proxy\n  isDefault: true\n\
+    \  name: Prometheus\n  type: prometheus\n  uid: prometheus\n  url: http://prometheus:9090\n\
+    - access: proxy\n  name: Loki\n  type: loki\n  uid: loki\n  url: http://loki:3100\n"
+  dashboards.yml: "apiVersion: 1\nproviders:\n- name: Boutique\n  options:\n    path:\
+    \ /var/lib/grafana/dashboards\n  type: file\n"
+  boutique.json: "{\n  \"uid\": \"boutique-overview\",\n  \"title\": \"Boutique operations\"\
+    ,\n  \"schemaVersion\": 39,\n  \"version\": 1,\n  \"refresh\": \"30s\",\n  \"\
+    time\": {\n    \"from\": \"now-1h\",\n    \"to\": \"now\"\n  },\n  \"templating\"\
+    : {\n    \"list\": [\n      {\n        \"name\": \"environment\",\n        \"\
+    type\": \"query\",\n        \"datasource\": {\n          \"type\": \"prometheus\"\
+    ,\n          \"uid\": \"prometheus\"\n        },\n        \"query\": \"label_values(up{job=~\\\
+    \"boutique|orders\\\"}, environment)\",\n        \"includeAll\": true,\n     \
+    \   \"allValue\": \".*\",\n        \"current\": {\n          \"text\": \"All\"\
+    ,\n          \"value\": \"$__all\"\n        }\n      }\n    ]\n  },\n  \"panels\"\
+    : [\n    {\n      \"id\": 1,\n      \"type\": \"timeseries\",\n      \"title\"\
+    : \"Service availability\",\n      \"datasource\": {\n        \"type\": \"prometheus\"\
+    ,\n        \"uid\": \"prometheus\"\n      },\n      \"gridPos\": {\n        \"\
+    x\": 0,\n        \"y\": 0,\n        \"w\": 12,\n        \"h\": 8\n      },\n \
+    \     \"targets\": [\n        {\n          \"expr\": \"min by(service,environment)\
+    \ (up{job=~\\\"boutique|orders\\\",environment=~\\\"$environment\\\"})\",\n  \
+    \        \"refId\": \"A\",\n          \"legendFormat\": \"{{service}} {{environment}}\"\
+    \n        }\n      ]\n    },\n    {\n      \"id\": 2,\n      \"type\": \"timeseries\"\
+    ,\n      \"title\": \"Requests per second\",\n      \"datasource\": {\n      \
+    \  \"type\": \"prometheus\",\n        \"uid\": \"prometheus\"\n      },\n    \
+    \  \"gridPos\": {\n        \"x\": 12,\n        \"y\": 0,\n        \"w\": 12,\n\
+    \        \"h\": 8\n      },\n      \"targets\": [\n        {\n          \"expr\"\
+    : \"boutique:requests:rate5m{environment=~\\\"$environment\\\"}\",\n         \
+    \ \"refId\": \"A\",\n          \"legendFormat\": \"{{service}} {{environment}}\"\
+    \n        }\n      ]\n    },\n    {\n      \"id\": 3,\n      \"type\": \"timeseries\"\
+    ,\n      \"title\": \"HTTP error ratio\",\n      \"datasource\": {\n        \"\
+    type\": \"prometheus\",\n        \"uid\": \"prometheus\"\n      },\n      \"gridPos\"\
+    : {\n        \"x\": 0,\n        \"y\": 8,\n        \"w\": 12,\n        \"h\":\
+    \ 8\n      },\n      \"targets\": [\n        {\n          \"expr\": \"boutique:errors:rate5m{environment=~\\\
+    \"$environment\\\"} / boutique:requests:rate5m{environment=~\\\"$environment\\\
+    \"}\",\n          \"refId\": \"A\",\n          \"legendFormat\": \"{{service}}\
+    \ {{environment}}\"\n        }\n      ]\n    },\n    {\n      \"id\": 4,\n   \
+    \   \"type\": \"timeseries\",\n      \"title\": \"HTTP p95 seconds\",\n      \"\
+    datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"prometheus\"\
+    \n      },\n      \"gridPos\": {\n        \"x\": 12,\n        \"y\": 8,\n    \
+    \    \"w\": 12,\n        \"h\": 8\n      },\n      \"targets\": [\n        {\n\
+    \          \"expr\": \"boutique:latency:p95{environment=~\\\"$environment\\\"\
+    }\",\n          \"refId\": \"A\",\n          \"legendFormat\": \"{{service}} {{environment}}\"\
+    \n        }\n      ]\n    },\n    {\n      \"id\": 5,\n      \"type\": \"timeseries\"\
+    ,\n      \"title\": \"Firing alerts\",\n      \"datasource\": {\n        \"type\"\
+    : \"prometheus\",\n        \"uid\": \"prometheus\"\n      },\n      \"gridPos\"\
+    : {\n        \"x\": 0,\n        \"y\": 16,\n        \"w\": 12,\n        \"h\"\
+    : 8\n      },\n      \"targets\": [\n        {\n          \"expr\": \"ALERTS{alertstate=\\\
+    \"firing\\\"}\",\n          \"refId\": \"A\",\n          \"legendFormat\": \"\
+    {{service}} {{environment}}\"\n        }\n      ]\n    },\n    {\n      \"id\"\
+    : 6,\n      \"type\": \"timeseries\",\n      \"title\": \"Pending incidents\"\
+    ,\n      \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\"\
+    : \"prometheus\"\n      },\n      \"gridPos\": {\n        \"x\": 12,\n       \
+    \ \"y\": 16,\n        \"w\": 12,\n        \"h\": 8\n      },\n      \"targets\"\
+    : [\n        {\n          \"expr\": \"boutique_incident_pending\",\n         \
+    \ \"refId\": \"A\",\n          \"legendFormat\": \"{{service}} {{environment}}\"\
+    \n        }\n      ]\n    },\n    {\n      \"id\": 7,\n      \"type\": \"timeseries\"\
+    ,\n      \"title\": \"Oldest incident seconds\",\n      \"datasource\": {\n  \
+    \      \"type\": \"prometheus\",\n        \"uid\": \"prometheus\"\n      },\n\
+    \      \"gridPos\": {\n        \"x\": 0,\n        \"y\": 24,\n        \"w\": 12,\n\
+    \        \"h\": 8\n      },\n      \"targets\": [\n        {\n          \"expr\"\
+    : \"boutique_incident_oldest_seconds\",\n          \"refId\": \"A\",\n       \
+    \   \"legendFormat\": \"{{service}} {{environment}}\"\n        }\n      ]\n  \
+    \  },\n    {\n      \"id\": 8,\n      \"type\": \"timeseries\",\n      \"title\"\
+    : \"JVM heap bytes\",\n      \"datasource\": {\n        \"type\": \"prometheus\"\
+    ,\n        \"uid\": \"prometheus\"\n      },\n      \"gridPos\": {\n        \"\
+    x\": 12,\n        \"y\": 24,\n        \"w\": 12,\n        \"h\": 8\n      },\n\
+    \      \"targets\": [\n        {\n          \"expr\": \"jvm_memory_used_bytes{area=\\\
+    \"heap\\\"}\",\n          \"refId\": \"A\",\n          \"legendFormat\": \"{{service}}\
+    \ {{environment}}\"\n        }\n      ]\n    },\n    {\n      \"id\": 9,\n   \
+    \   \"type\": \"timeseries\",\n      \"title\": \"Frontend heap bytes\",\n   \
+    \   \"datasource\": {\n        \"type\": \"prometheus\",\n        \"uid\": \"\
+    prometheus\"\n      },\n      \"gridPos\": {\n        \"x\": 0,\n        \"y\"\
+    : 32,\n        \"w\": 12,\n        \"h\": 8\n      },\n      \"targets\": [\n\
+    \        {\n          \"expr\": \"boutique_node_heap_bytes\",\n          \"refId\"\
+    : \"A\",\n          \"legendFormat\": \"{{service}} {{environment}}\"\n      \
+    \  }\n      ]\n    },\n    {\n      \"id\": 10,\n      \"type\": \"logs\",\n \
+    \     \"title\": \"Application logs\",\n      \"datasource\": {\n        \"type\"\
+    : \"loki\",\n        \"uid\": \"loki\"\n      },\n      \"gridPos\": {\n     \
+    \   \"x\": 0,\n        \"y\": 40,\n        \"w\": 24,\n        \"h\": 10\n   \
+    \   },\n      \"targets\": [\n        {\n          \"expr\": \"{environment=~\\\
+    \"$environment\\\",service=~\\\"frontend|catalogue|cart|orders\\\"}\",\n     \
+    \     \"refId\": \"A\"\n        }\n      ]\n    }\n  ]\n}\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        runAsGroup: 472
+        fsGroup: 472
+      containers:
+      - name: grafana
+        image: grafana/grafana@sha256:b28bae15e219c998fb0e0424ed724930cc61b1f61fb404d47c862f9a23f9e572
+        ports:
+        - name: http
+          containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD__FILE
+          value: /run/secrets/grafana_password
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: 'false'
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: 'false'
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: 'false'
+        - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+          value: 'false'
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/grafana
+        - name: tmp
+          mountPath: /tmp
+        - name: secrets
+          mountPath: /run/secrets
+          readOnly: true
+        - name: config
+          mountPath: /etc/grafana/provisioning/datasources/datasources.yml
+          subPath: datasources.yml
+        - name: config
+          mountPath: /etc/grafana/provisioning/dashboards/dashboards.yml
+          subPath: dashboards.yml
+        - name: config
+          mountPath: /var/lib/grafana/dashboards/boutique.json
+          subPath: boutique.json
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: grafana-data
+      - name: tmp
+        emptyDir: {}
+      - name: secrets
+        secret:
+          secretName: monitoring-integrations
+          defaultMode: 292
+          items:
+          - key: grafana_password
+            path: grafana_password
+      - name: config
+        configMap:
+          name: boutique-grafana
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  selector:
+    app: grafana
+  ports:
+  - port: 3000
+    targetPort: http

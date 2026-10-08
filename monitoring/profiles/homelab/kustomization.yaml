@@ -1,0 +1,91 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+- rbac.yaml
+patches:
+- target:
+    kind: ConfigMap
+    name: boutique-prometheus
+  patch: "- op: replace\n  path: /data/prometheus.yml\n  value: \"global:\\n  scrape_interval:\
+    \ 15s\\n  external_labels:\\n    cluster: homelab\\n\\\n    alerting:\\n  alertmanagers:\\\
+    n  - static_configs:\\n    - targets:\\n      - alertmanager:9093\\n\\\n    rule_files:\\\
+    n- /etc/prometheus/rules.yml\\nscrape_configs:\\n- job_name: boutique\\n\\\n \
+    \   \\  metrics_path: /metrics\\n  kubernetes_sd_configs:\\n  - role: pod\\n \
+    \   namespaces:\\n\\\n    \\      names:\\n      - boutique-dev\\n    selectors:\\\
+    n    - role: pod\\n      label:\\\n    \\ app.kubernetes.io/part-of=boutique\\\
+    n  relabel_configs:\\n  - source_labels:\\n\\\n    \\    - __meta_kubernetes_pod_label_app_kubernetes_io_name\\\
+    n    regex: frontend|catalogue|cart\\n\\\n    \\    action: keep\\n  - source_labels:\\\
+    n    - __meta_kubernetes_pod_container_port_name\\n\\\n    \\    regex: http\\\
+    n    action: keep\\n  - source_labels:\\n    - __meta_kubernetes_pod_phase\\n\\\
+    \n    \\    regex: Running\\n    action: keep\\n  - source_labels:\\n    - __meta_kubernetes_pod_label_app_kubernetes_io_name\\\
+    n\\\n    \\    target_label: service\\n  - source_labels:\\n    - __meta_kubernetes_namespace\\\
+    n\\\n    \\    regex: boutique-(.*)\\n    target_label: environment\\n    replacement:\
+    \ $1\\n\\\n    \\  - source_labels:\\n    - __meta_kubernetes_pod_name\\n    target_label:\
+    \ pod\\n\\\n    \\  - target_label: cluster\\n    replacement: homelab\\n- job_name:\
+    \ orders\\n  metrics_path:\\\n    \\ /actuator/prometheus\\n  kubernetes_sd_configs:\\\
+    n  - role: pod\\n    namespaces:\\n\\\n    \\      names:\\n      - boutique-dev\\\
+    n    selectors:\\n    - role: pod\\n      label:\\\n    \\ app.kubernetes.io/part-of=boutique\\\
+    n  relabel_configs:\\n  - source_labels:\\n\\\n    \\    - __meta_kubernetes_pod_label_app_kubernetes_io_name\\\
+    n    regex: orders\\n\\\n    \\    action: keep\\n  - source_labels:\\n    - __meta_kubernetes_pod_container_port_name\\\
+    n\\\n    \\    regex: http\\n    action: keep\\n  - source_labels:\\n    - __meta_kubernetes_pod_phase\\\
+    n\\\n    \\    regex: Running\\n    action: keep\\n  - source_labels:\\n    -\
+    \ __meta_kubernetes_pod_label_app_kubernetes_io_name\\n\\\n    \\    target_label:\
+    \ service\\n  - source_labels:\\n    - __meta_kubernetes_namespace\\n\\\n    \\\
+    \    regex: boutique-(.*)\\n    target_label: environment\\n    replacement: $1\\\
+    n\\\n    \\  - source_labels:\\n    - __meta_kubernetes_pod_name\\n    target_label:\
+    \ pod\\n\\\n    \\  - target_label: cluster\\n    replacement: homelab\\n- job_name:\
+    \ prometheus\\n\\\n    \\  static_configs:\\n  - targets:\\n    - localhost:9090\\\
+    n- job_name: alertmanager\\n\\\n    \\  static_configs:\\n  - targets:\\n    -\
+    \ alertmanager:9093\\n- job_name: incident-bridge\\n\\\n    \\  static_configs:\\\
+    n  - targets:\\n    - incident-bridge:8084\\n\"\n- op: replace\n  path: /data/rules.yml\n\
+    \  value: \"groups:\\n- name: boutique\\n  rules:\\n  - record: boutique:requests:rate5m\\\
+    n\\\n    \\    expr: sum by (service, environment, cluster) (rate(boutique_http_requests_total[5m]))\\\
+    n\\\n    \\      or sum by (service, environment, cluster) (rate(http_server_requests_seconds_count{uri!~\\\
+    \"\\\n    /actuator.*\\\"}[5m]))\\n  - record: boutique:errors:rate5m\\n    expr:\
+    \ sum by (service,\\\n    \\ environment, cluster) (rate(boutique_http_requests_total{status=~\\\
+    \"5..\\\"}[5m]))\\n\\\n    \\      or sum by (service, environment, cluster) (rate(http_server_requests_seconds_count{status=~\\\
+    \"\\\n    5..\\\",uri!~\\\"/actuator.*\\\"}[5m]))\\n      or (0 * boutique:requests:rate5m)\\\
+    n \\\n    \\ - record: boutique:latency:p95\\n    expr: histogram_quantile(0.95,\
+    \ sum by (le,\\\n    \\ service, environment, cluster) (rate(boutique_http_request_duration_seconds_bucket[5m])))\\\
+    n\\\n    \\      or histogram_quantile(0.95, sum by (le, service, environment,\
+    \ cluster)\\\n    \\ (rate(http_server_requests_seconds_bucket{uri!~\\\"/actuator.*\\\
+    \"}[5m])))\\n  -\\\n    \\ alert: BoutiqueServiceDown\\n    expr: up{job=~\\\"\
+    boutique|orders\\\"} == 0\\n  \\\n    \\  for: 2m\\n    labels:\\n      severity:\
+    \ critical\\n    annotations:\\n      summary:\\\n    \\ '{{ $labels.service }}\
+    \ is unavailable in {{ $labels.environment }}'\\n      runbook_url:\\\n    \\\
+    \ https://github.com/subhankar12-spec/boutique-platform/blob/main/docs/monitoring.md#service-down\\\
+    n\\\n    \\  - alert: BoutiqueHighErrorRate\\n    expr: (boutique:errors:rate5m\
+    \ / boutique:requests:rate5m\\\n    \\ > 0.05) and (boutique:requests:rate5m\\\
+    n      > 0.1)\\n    for: 5m\\n    labels:\\n\\\n    \\      severity: critical\\\
+    n    annotations:\\n      summary: HTTP 5xx exceeds 5\\\n    \\ percent for {{\
+    \ $labels.service }}\\n  - alert: BoutiqueHighLatency\\n    expr:\\\n    \\ (boutique:latency:p95\
+    \ > 1) and (boutique:requests:rate5m > 0.1)\\n    for: 10m\\n\\\n    \\    labels:\\\
+    n      severity: warning\\n    annotations:\\n      summary: HTTP p95\\\n    \\\
+    \ exceeds one second for {{ $labels.service }}\\n  - alert: IncidentDeliveryBacklog\\\
+    n\\\n    \\    expr: boutique_incident_oldest_seconds > 300\\n    for: 5m\\n \
+    \   labels:\\n\\\n    \\      severity: critical\\n      service: incident-bridge\\\
+    n    annotations:\\n\\\n    \\      summary: ServiceNow incident delivery has\
+    \ been delayed for over five minutes\\n\\\n    \\  - alert: AlertmanagerDeliveryFailures\\\
+    n    expr: increase(alertmanager_notifications_failed_total[10m])\\\n    \\ >\
+    \ 0\\n    for: 2m\\n    labels:\\n      severity: warning\\n    annotations:\\\
+    n \\\n    \\     summary: Alertmanager receiver delivery is failing\\n  - alert:\
+    \ PrometheusRuleFailures\\n\\\n    \\    expr: increase(prometheus_rule_evaluation_failures_total[10m])\
+    \ > 0\\n    for:\\\n    \\ 2m\\n    labels:\\n      severity: warning\\n    annotations:\\\
+    n      summary: Prometheus\\\n    \\ rule evaluations are failing\\n  - alert:\
+    \ BoutiqueServiceMissing\\n    expr: absent(up{job=~\\\"\\\n    boutique|orders\\\
+    \",service=\\\"frontend\\\",environment=\\\"dev\\\",cluster=\\\"homelab\\\"\\\n\
+    \    })\\n    for: 2m\\n    labels:\\n      severity: critical\\n    annotations:\\\
+    n   \\\n    \\   summary: No running scrape targets for frontend in dev\\n  -\
+    \ alert: BoutiqueServiceMissing\\n\\\n    \\    expr: absent(up{job=~\\\"boutique|orders\\\
+    \",service=\\\"catalogue\\\",environment=\\\"\\\n    dev\\\",cluster=\\\"homelab\\\
+    \"})\\n    for: 2m\\n    labels:\\n      severity: critical\\n\\\n    \\    annotations:\\\
+    n      summary: No running scrape targets for catalogue in dev\\n\\\n    \\  -\
+    \ alert: BoutiqueServiceMissing\\n    expr: absent(up{job=~\\\"boutique|orders\\\
+    \"\\\n    ,service=\\\"cart\\\",environment=\\\"dev\\\",cluster=\\\"homelab\\\"\
+    })\\n    for: 2m\\n   \\\n    \\ labels:\\n      severity: critical\\n    annotations:\\\
+    n      summary: No running\\\n    \\ scrape targets for cart in dev\\n  - alert:\
+    \ BoutiqueServiceMissing\\n    expr:\\\n    \\ absent(up{job=~\\\"boutique|orders\\\
+    \",service=\\\"orders\\\",environment=\\\"dev\\\",cluster=\\\"\\\n    homelab\\\
+    \"})\\n    for: 2m\\n    labels:\\n      severity: critical\\n    annotations:\\\
+    n\\\n    \\      summary: No running scrape targets for orders in dev\\n\"\n"

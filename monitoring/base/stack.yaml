@@ -1,0 +1,362 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-alertmanager
+  namespace: monitoring
+data:
+  alertmanager.yml: "global:\n  resolve_timeout: 5m\nroute:\n  receiver: slack\n \
+    \ group_by:\n  - cluster\n  - environment\n  - service\n  - alertname\n  group_wait:\
+    \ 30s\n  group_interval: 5m\n  repeat_interval: 4h\n  routes:\n  - receiver: servicenow\n\
+    \    matchers:\n    - environment=\"production\"\n    - severity=\"critical\"\n\
+    \    continue: true\n  - receiver: slack\n    matchers:\n    - severity=~\"warning|critical\"\
+    \ninhibit_rules:\n- source_matchers:\n  - severity=\"critical\"\n  target_matchers:\n\
+    \  - severity=\"warning\"\n  equal:\n  - cluster\n  - environment\n  - service\n\
+    receivers:\n- name: slack\n  slack_configs:\n  - api_url_file: /run/secrets/slack_webhook\n\
+    \    send_resolved: true\n    title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname\
+    \ }}'\n    text: '{{ range .Alerts }}{{ .Annotations.summary }}\n\n      {{ .Annotations.runbook_url\
+    \ }}\n\n      {{ end }}'\n- name: servicenow\n  webhook_configs:\n  - url: http://incident-bridge:8084/alerts\n\
+    \    send_resolved: true\n    http_config:\n      authorization:\n        type:\
+    \ Bearer\n        credentials_file: /run/secrets/webhook_token\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager@sha256:e9733bafb1bdef9b00e25a21f8f99dc26a22224bf16641ad754d1649f4c3357a
+        ports:
+        - name: http
+          containerPort: 9093
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/alertmanager
+          readOnly: true
+        - name: data
+          mountPath: /data
+        - name: secrets
+          mountPath: /run/secrets
+          readOnly: true
+        args:
+        - --config.file=/etc/alertmanager/alertmanager.yml
+        - --storage.path=/data
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: boutique-alertmanager
+      - name: data
+        persistentVolumeClaim:
+          claimName: alertmanager-data
+      - name: secrets
+        secret:
+          secretName: monitoring-integrations
+          defaultMode: 292
+          items:
+          - key: slack_webhook
+            path: slack_webhook
+          - key: webhook_token
+            path: webhook_token
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-data
+  namespace: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  selector:
+    app: alertmanager
+  ports:
+  - port: 9093
+    targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-loki
+  namespace: monitoring
+data:
+  config.yml: "auth_enabled: false\nserver:\n  http_listen_port: 3100\ncommon:\n \
+    \ path_prefix: /data\n  replication_factor: 1\n  ring:\n    kvstore:\n      store:\
+    \ inmemory\n  storage:\n    filesystem:\n      chunks_directory: /data/chunks\n\
+    \      rules_directory: /data/rules\nschema_config:\n  configs:\n  - from: '2024-01-01'\n\
+    \    store: tsdb\n    object_store: filesystem\n    schema: v13\n    index:\n\
+    \      prefix: index_\n      period: 24h\nlimits_config:\n  retention_period:\
+    \ 168h\n  ingestion_rate_mb: 4\n  ingestion_burst_size_mb: 8\ncompactor:\n  working_directory:\
+    \ /data/compactor\n  retention_enabled: true\n  delete_request_store: filesystem\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+      - name: loki
+        image: grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193
+        ports:
+        - name: http
+          containerPort: 3100
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/loki
+          readOnly: true
+        - name: data
+          mountPath: /data
+        args:
+        - -config.file=/etc/loki/config.yml
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: boutique-loki
+      - name: data
+        persistentVolumeClaim:
+          claimName: loki-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data
+  namespace: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  selector:
+    app: loki
+  ports:
+  - port: 3100
+    targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-incident-bridge
+  namespace: monitoring
+data: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-bridge
+  namespace: monitoring
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: incident-bridge
+  template:
+    metadata:
+      labels:
+        app: incident-bridge
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+      containers:
+      - name: incident-bridge
+        image: ghcr.io/subhankar12-spec/boutique-incident-bridge:replace-with-tested-digest
+        ports:
+        - name: http
+          containerPort: 8084
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/incident-bridge
+          readOnly: true
+        - name: data
+          mountPath: /data
+        - name: secrets
+          mountPath: /run/secrets
+          readOnly: true
+        env:
+        - name: QUEUE_PATH
+          value: /data/queue.db
+        - name: WEBHOOK_TOKEN_FILE
+          value: /run/secrets/webhook_token
+        - name: SERVICENOW_URL
+          value: https://REPLACE.service-now.com
+        - name: SERVICENOW_USERNAME
+          value: boutique-integration
+        - name: SERVICENOW_PASSWORD_FILE
+          value: /run/secrets/servicenow_password
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: boutique-incident-bridge
+      - name: data
+        persistentVolumeClaim:
+          claimName: incident-bridge-data
+      - name: secrets
+        secret:
+          secretName: monitoring-integrations
+          defaultMode: 292
+          items:
+          - key: webhook_token
+            path: webhook_token
+          - key: servicenow_password
+            path: servicenow_password
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: incident-bridge-data
+  namespace: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-bridge
+  namespace: monitoring
+spec:
+  selector:
+    app: incident-bridge
+  ports:
+  - port: 8084
+    targetPort: http
