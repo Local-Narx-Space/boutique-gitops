@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../../monitoring/profiles/nonprod
+- ../mock-receivers
+patches:
+- target:
+    kind: Deployment
+    name: incident-bridge
+  patch: "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: incident-bridge\n\
+    \  namespace: monitoring\nspec:\n  template:\n    spec:\n      imagePullSecrets:\n\
+    \      - name: ghcr-pull\n      containers:\n      - name: incident-bridge\n \
+    \       env:\n        - name: SERVICENOW_URL\n          value: http://mock-receivers:18080\n\
+    \        - name: ALLOW_HTTP_MOCK\n          value: 'true'\n"

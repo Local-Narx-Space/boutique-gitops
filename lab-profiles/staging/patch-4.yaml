@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  template:
+    spec:
+      containers:
+      - name: postgres
+        args:
+        - postgres
+        - -c
+        - ssl=on
+        - -c
+        - ssl_cert_file=/run/tls/tls.crt
+        - -c
+        - ssl_key_file=/run/tls/tls.key
+        - -c
+        - hba_file=/run/postgres-policy/pg_hba.conf
+        volumeMounts:
+        - name: data-tls
+          mountPath: /run/tls
+          readOnly: true
+        - name: postgres-policy
+          mountPath: /run/postgres-policy
+          readOnly: true
+      volumes:
+      - name: data-tls
+        secret:
+          secretName: postgres-tls
+          defaultMode: 288
+      - name: postgres-policy
+        configMap:
+          name: postgres-tls-policy
+      securityContext:
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70

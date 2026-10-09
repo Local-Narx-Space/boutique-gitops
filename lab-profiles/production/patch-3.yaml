@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: ghcr-pull
+      containers:
+      - name: orders
+        volumeMounts:
+        - name: data-ca
+          mountPath: /run/data-ca
+          readOnly: true
+      volumes:
+      - name: data-ca
+        secret:
+          secretName: boutique-data-ca
+          defaultMode: 292
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: orders

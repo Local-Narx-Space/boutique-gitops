@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: boutique-production
+resources:
+- ../../environments/production
+- ../../dependencies/homelab
+- certificates.yaml
+- ingress.yaml
+- postgres-policy.yaml
+patches:
+- path: patch-0.yaml
+- path: patch-1.yaml
+- path: patch-2.yaml
+- path: patch-3.yaml
+- path: patch-4.yaml
+- path: patch-5.yaml

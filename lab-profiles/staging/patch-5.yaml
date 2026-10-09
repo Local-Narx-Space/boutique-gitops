@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  template:
+    spec:
+      containers:
+      - name: redis
+        command:
+        - sh
+        - -c
+        - exec redis-server --dir /data --appendonly yes --requirepass "$REDIS_PASSWORD"
+          --port 0 --tls-port 6379 --tls-cert-file /run/tls/tls.crt --tls-key-file
+          /run/tls/tls.key --tls-ca-cert-file /run/data-ca/ca.crt --tls-auth-clients
+          no
+        volumeMounts:
+        - name: data-ca
+          mountPath: /run/data-ca
+          readOnly: true
+        - name: data-tls
+          mountPath: /run/tls
+          readOnly: true
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli --tls --cacert /run/data-ca/ca.crt
+              -h redis ping | grep -q PONG
+      volumes:
+      - name: data-ca
+        secret:
+          secretName: boutique-data-ca
+          defaultMode: 292
+      - name: data-tls
+        secret:
+          secretName: redis-tls
+          defaultMode: 288

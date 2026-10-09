@@ -4,19 +4,56 @@ metadata:
   name: boutique-alertmanager
   namespace: monitoring
 data:
-  alertmanager.yml: "global:\n  resolve_timeout: 5m\nroute:\n  receiver: slack\n \
-    \ group_by:\n  - cluster\n  - environment\n  - service\n  - alertname\n  group_wait:\
-    \ 30s\n  group_interval: 5m\n  repeat_interval: 4h\n  routes:\n  - receiver: servicenow\n\
-    \    matchers:\n    - environment=\"production\"\n    - severity=\"critical\"\n\
-    \    continue: true\n  - receiver: slack\n    matchers:\n    - severity=~\"warning|critical\"\
-    \ninhibit_rules:\n- source_matchers:\n  - severity=\"critical\"\n  target_matchers:\n\
-    \  - severity=\"warning\"\n  equal:\n  - cluster\n  - environment\n  - service\n\
-    receivers:\n- name: slack\n  slack_configs:\n  - api_url_file: /run/secrets/slack_webhook\n\
-    \    send_resolved: true\n    title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname\
-    \ }}'\n    text: '{{ range .Alerts }}{{ .Annotations.summary }}\n\n      {{ .Annotations.runbook_url\
-    \ }}\n\n      {{ end }}'\n- name: servicenow\n  webhook_configs:\n  - url: http://incident-bridge:8084/alerts\n\
-    \    send_resolved: true\n    http_config:\n      authorization:\n        type:\
-    \ Bearer\n        credentials_file: /run/secrets/webhook_token\n"
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: slack
+      group_by:
+      - cluster
+      - environment
+      - service
+      - alertname
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+      - receiver: servicenow
+        matchers:
+        - environment="production"
+        - severity="critical"
+        - incident_delivery!="disabled"
+        continue: true
+      - receiver: slack
+        matchers:
+        - severity=~"warning|critical"
+    inhibit_rules:
+    - source_matchers:
+      - severity="critical"
+      target_matchers:
+      - severity="warning"
+      equal:
+      - cluster
+      - environment
+      - service
+    receivers:
+    - name: slack
+      slack_configs:
+      - api_url_file: /run/secrets/slack_webhook
+        send_resolved: true
+        title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+        text: |-
+          {{ range .Alerts }}{{ .Annotations.summary }}
+          {{ .Annotations.runbook_url }}
+          {{ end }}
+    - name: servicenow
+      webhook_configs:
+      - url: http://incident-bridge:8084/alerts
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/secrets/webhook_token
 ---
 apiVersion: apps/v1
 kind: Deployment

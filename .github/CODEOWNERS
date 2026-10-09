@@ -1,1 +1,16 @@
-* @subhankar12-spec
+# Dev digest updates are checked by boutique/gitops-policy and can auto-merge.
+# Protect implementation/configuration and all staging/production deliveries.
+/scripts/ @subhankar12-spec
+/schemas/ @subhankar12-spec
+/services/*/base/ @subhankar12-spec
+/services/*/overlays/staging/ @subhankar12-spec
+/services/*/overlays/production/ @subhankar12-spec
+/promotionrecords/staging/ @subhankar12-spec
+/promotionrecords/production/ @subhankar12-spec
+/environments/ @subhankar12-spec
+/lab-profiles/ @subhankar12-spec
+/platform/ @subhankar12-spec
+/dependencies/ @subhankar12-spec
+/monitoring/ @subhankar12-spec
+/.github/ @subhankar12-spec
+/Jenkinsfile @subhankar12-spec

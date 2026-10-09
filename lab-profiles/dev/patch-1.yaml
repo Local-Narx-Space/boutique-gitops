@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: ghcr-pull
+      containers:
+      - name: catalogue

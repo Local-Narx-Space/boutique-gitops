@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aws-incident-queue-egress
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: incident-bridge
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    # Must match Terraform platform.monitoring.database_subnet_cidrs.
+    # Re-review this binding if the production VPC/subnet topology changes.
+    - ipBlock:
+        cidr: 10.20.64.0/20
+    - ipBlock:
+        cidr: 10.20.80.0/20
+    - ipBlock:
+        cidr: 10.20.96.0/20
+    ports:
+    - protocol: TCP
+      port: 5432
