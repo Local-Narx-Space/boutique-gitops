@@ -2,6 +2,7 @@
 """Create signed release evidence from measured Kubernetes/Argo/smoke reports."""
 import argparse
 import json
+from helm_release import selected_chart, approved_argo_source
 
 from evidence import ROOT, EvidenceError, check_history, read_json, sign, utcnow, validate_identity, validate_payload, verified_evidence
 
@@ -42,9 +43,7 @@ def make_payload(args):
         raise EvidenceError("Argo CD report targets the wrong environment")
     if argo.get("spec", {}).get("source", {}).get("repoURL") != "https://github.com/subhankar12-spec/boutique-gitops.git":
         raise EvidenceError("Argo CD report does not use the trusted GitOps repository")
-    source_path = argo.get("spec", {}).get("source", {}).get("path", "")
-    if source_path not in (f"environments/{args.environment}", f"lab-profiles/{args.environment}"):
-        raise EvidenceError("Argo CD report does not belong to an approved environment overlay")
+    approved_argo_source(argo.get("spec",{}).get("source"),args.environment)
     smoke = read_json(args.smoke_json)
     if smoke.get("schema_version") != 1:
         raise EvidenceError("Unsupported smoke report schema")
@@ -56,8 +55,9 @@ def make_payload(args):
     if len(frontend_containers) != 1 or len(public_origins) != 1 or public_origins[0] != smoke.get("origin"):
         raise EvidenceError("Smoke origin does not match the deployed frontend PUBLIC_ORIGIN")
     payload = {
-        "schema_version": 1, "service": args.service, "environment": args.environment,
+        "schema_version": 2, "service": args.service, "environment": args.environment,
         "image": args.image, "gitops_commit": args.gitops_commit,
+        "chart": selected_chart(ROOT,args.service,args.environment,args.gitops_commit),
         "verified_at": utcnow().isoformat(), "build_url": args.build_url,
         "deployment": {
             "image": containers[0].get("image"), "generation": metadata.get("generation"),

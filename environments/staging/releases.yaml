@@ -1,0 +1,20 @@
+frontend:
+  image:
+    repository: ghcr.io/subhankar12-spec/boutique-frontend
+    digest: ''
+    tag: bootstrap
+catalogue:
+  image:
+    repository: ghcr.io/subhankar12-spec/boutique-catalogue
+    digest: ''
+    tag: bootstrap
+cart:
+  image:
+    repository: ghcr.io/subhankar12-spec/boutique-cart
+    digest: ''
+    tag: bootstrap
+orders:
+  image:
+    repository: ghcr.io/subhankar12-spec/boutique-orders
+    digest: ''
+    tag: bootstrap

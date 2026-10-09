@@ -12,12 +12,13 @@
     "image",
     "previous_image",
     "release",
-    "verification"
+    "verification",
+    "previous_chart"
   ],
   "properties": {
     "schema_version": {
       "type": "integer",
-      "const": 1
+      "const": 2
     },
     "mode": {
       "enum": [
@@ -59,6 +60,9 @@
           "$ref": "release-evidence.schema.json"
         }
       ]
+    },
+    "previous_chart": {
+      "$ref": "chart-identity.schema.json"
     }
   },
   "description": "Schema validates shape only. Use protected scripts/check_delivery_change.py for trust, freshness and base-history policy."

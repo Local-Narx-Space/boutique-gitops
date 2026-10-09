@@ -116,23 +116,25 @@ def git(root, *arguments):
 
 
 def overlay(service, environment):
-    return f"services/{service}/overlays/{environment}/kustomization.yaml"
+    return f"environments/{environment}/releases.yaml"
 
 
 def selected_image(root, service, environment, commit=None):
-    import yaml
-    content = git(root, "show", f"{commit}:{overlay(service, environment)}") if commit else (Path(root) / overlay(service, environment)).read_text()
-    data = yaml.safe_load(content)
-    images = [entry for entry in data.get("images", []) if entry.get("name") == f"ghcr.io/subhankar12-spec/boutique-{service}"]
-    if len(images) != 1:
-        raise EvidenceError("Expected exactly one service image in the overlay")
-    entry = images[0]
-    name = entry.get("newName", entry["name"])
-    if entry.get("digest"):
-        return name + "@" + entry["digest"]
-    if entry.get("newTag"):
-        return name + ":" + entry["newTag"]
-    return name
+    from helm_release import load, values_path
+    data=load(root,values_path(environment),commit)
+    if not isinstance(data,dict) or set(data)!=set(SERVICES):
+        raise EvidenceError("Helm release values require exactly the four services")
+    for name, configuration in data.items():
+        if not isinstance(configuration,dict) or set(configuration)!={"image"}:
+            raise EvidenceError("Release values can change only service image selections")
+        image=configuration["image"]
+        if not isinstance(image,dict) or set(image)!={"repository","digest","tag"}:
+            raise EvidenceError("Invalid Helm image selection")
+    image=data[service]["image"]
+    if image["digest"]:
+        if image["tag"]:raise EvidenceError("An immutable image selection cannot also specify a tag")
+        return image["repository"]+"@"+image["digest"]
+    return image["repository"]+":"+image["tag"]
 
 
 def check_history(root, payload, tip="HEAD"):
@@ -140,6 +142,9 @@ def check_history(root, payload, tip="HEAD"):
     if not re.fullmatch(r"[a-f0-9]{40}", commit):
         raise EvidenceError("Evidence must contain a full GitOps commit SHA")
     git(root, "merge-base", "--is-ancestor", commit, tip)
+    from helm_release import selected_chart
+    if payload.get("chart") != selected_chart(root,payload["service"],payload["environment"],commit):
+        raise EvidenceError("Evidence chart does not match its recorded GitOps commit")
     if selected_image(root, payload["service"], payload["environment"], commit) != payload["image"]:
         raise EvidenceError("Evidence image does not match its recorded GitOps commit")
 
@@ -152,7 +157,7 @@ def _integer(value, name, minimum=0):
 
 def validate_payload(payload, service, environment, image, max_age_hours=24, now=None):
     validate_identity(service, environment, image)
-    if not isinstance(payload, dict) or type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
+    if not isinstance(payload, dict) or type(payload.get("schema_version")) is not int or payload["schema_version"] != 2:
         raise EvidenceError("Unsupported release evidence schema")
     for key, expected in (("service", service), ("environment", environment), ("image", image)):
         if payload.get(key) != expected:
@@ -163,6 +168,9 @@ def validate_payload(payload, service, environment, image, max_age_hours=24, now
     verified = timestamp(payload.get("verified_at"))
     if verified > now + dt.timedelta(seconds=60) or now - verified > dt.timedelta(hours=max_age_hours):
         raise EvidenceError("Verification evidence is stale or dated in the future")
+    chart=payload.get("chart")
+    if not isinstance(chart,dict) or set(chart)!={"name","repository","version","package_sha256"}:
+        raise EvidenceError("Measured Helm chart selection is required")
     deployment = payload.get("deployment", {})
     if deployment.get("image") != image:
         raise EvidenceError("Measured deployment image does not match the requested release")

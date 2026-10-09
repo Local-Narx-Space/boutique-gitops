@@ -32,7 +32,7 @@
       "properties": {
         "schema_version": {
           "type": "integer",
-          "const": 1
+          "const": 2
         },
         "service": {
           "enum": [
@@ -68,8 +68,67 @@
         "scan_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "chart": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "repository",
+            "version",
+            "package_sha256",
+            "oci_digest"
+          ],
+          "properties": {
+            "name": {
+              "enum": [
+                "boutique-frontend",
+                "boutique-catalogue",
+                "boutique-cart",
+                "boutique-orders"
+              ]
+            },
+            "repository": {
+              "const": "oci://ghcr.io/subhankar12-spec/charts"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^0\\.1\\.0-[a-f0-9]{40}$"
+            },
+            "package_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "oci_digest": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "const": "incident-bridge"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "chart"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "chart"
+            ]
+          }
+        }
+      ]
     },
     "signature": {
       "type": "string",

@@ -1,0 +1,19 @@
+{{- if .Values.lab.enabled }}
+apiVersion: v1
+data:
+  pg_hba.conf: 'local all all trust
+
+    hostssl all all 0.0.0.0/0 scram-sha-256
+
+    hostssl all all ::/0 scram-sha-256
+
+    hostnossl all all 0.0.0.0/0 reject
+
+    hostnossl all all ::/0 reject
+
+    '
+kind: ConfigMap
+metadata:
+  name: postgres-tls-policy
+  namespace: boutique-dev
+{{- end }}

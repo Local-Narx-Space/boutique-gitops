@@ -27,6 +27,11 @@ spec:
     repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
     targetRevision: main
     path: environments/dev
+    helm:
+      releaseName: boutique-dev
+      valueFiles:
+      - values.yaml
+      - releases.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: boutique-dev

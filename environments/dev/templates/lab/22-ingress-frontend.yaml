@@ -1,0 +1,27 @@
+{{- if .Values.lab.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+  name: frontend
+  namespace: boutique-dev
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: dev.boutique.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - dev.boutique.test
+    secretName: frontend-tls
+{{- end }}

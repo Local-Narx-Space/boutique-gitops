@@ -1,0 +1,28 @@
+{{- if .Values.lab.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: '-1'
+  name: postgres-tls
+  namespace: boutique-staging
+spec:
+  dnsNames:
+  - postgres
+  - postgres.boutique-staging.svc
+  - postgres.boutique-staging.svc.cluster.local
+  duration: 2160h
+  issuerRef:
+    kind: ClusterIssuer
+    name: boutique-lab-ca
+  privateKey:
+    algorithm: RSA
+    rotationPolicy: Always
+    size: 2048
+  renewBefore: 360h
+  secretName: postgres-tls
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+{{- end }}

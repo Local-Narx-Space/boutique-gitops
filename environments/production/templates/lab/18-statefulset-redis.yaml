@@ -1,0 +1,96 @@
+{{- if .Values.lab.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: boutique-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  serviceName: redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - sh
+        - -c
+        - exec redis-server --dir /data --appendonly yes --requirepass "$REDIS_PASSWORD"
+          --port 0 --tls-port 6379 --tls-cert-file /run/tls/tls.crt --tls-key-file
+          /run/tls/tls.key --tls-ca-cert-file /run/data-ca/ca.crt --tls-auth-clients
+          no
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: redis-auth
+        image: redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: data
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli --tls --cacert /run/data-ca/ca.crt
+              -h redis ping | grep -q PONG
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /run/data-ca
+          name: data-ca
+          readOnly: true
+        - mountPath: /run/tls
+          name: data-tls
+          readOnly: true
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        fsGroup: 999
+        runAsGroup: 999
+        runAsNonRoot: true
+        runAsUser: 999
+      volumes:
+      - name: data-ca
+        secret:
+          defaultMode: 292
+          secretName: boutique-data-ca
+      - name: data-tls
+        secret:
+          defaultMode: 288
+          secretName: redis-tls
+      - emptyDir: {}
+        name: tmp
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+{{- end }}

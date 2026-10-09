@@ -1,0 +1,105 @@
+{{- if .Values.lab.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: boutique-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - postgres
+        - -c
+        - ssl=on
+        - -c
+        - ssl_cert_file=/run/tls/tls.crt
+        - -c
+        - ssl_key_file=/run/tls/tls.key
+        - -c
+        - hba_file=/run/postgres-policy/pg_hba.conf
+        env:
+        - name: POSTGRES_USER
+          value: boutique
+        - name: POSTGRES_DB
+          value: boutique
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: orders-database
+        - name: PGDATA
+          value: /data/pgdata
+        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        name: postgres
+        ports:
+        - containerPort: 5432
+          name: data
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - boutique
+            - -d
+            - boutique
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /run/tls
+          name: data-tls
+          readOnly: true
+        - mountPath: /run/postgres-policy
+          name: postgres-policy
+          readOnly: true
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        fsGroup: 70
+        runAsGroup: 70
+        runAsNonRoot: true
+        runAsUser: 70
+      volumes:
+      - name: data-tls
+        secret:
+          defaultMode: 288
+          secretName: postgres-tls
+      - configMap:
+          name: postgres-tls-policy
+        name: postgres-policy
+      - emptyDir: {}
+        name: tmp
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+{{- end }}

@@ -177,3 +177,7 @@ synthetic Kubernetes/Argo reports. They prove signature, freshness, image,
 environment, history, rollout, smoke, and rollback guards. They do not prove a
 live deployment. Live Jenkins execution, cluster rollout, Argo synchronization,
 and measured smoke reports are separate acceptance checks.
+
+## Helm release identity
+
+Release, delivery and verification envelopes use schema version 2. Application release payloads include chart name, OCI repository, source-SHA version, package SHA-256 and OCI manifest digest. Deployment evidence binds the chart identity and package bytes at its synchronized Git commit. Delivery records include `previous_chart` alongside `previous_image`; the protected gate rejects stale chart bases, unverified packages and chart-only changes without proof. See [Helm delivery](helm-delivery.md). Version-1 evidence cannot establish chart provenance and must be regenerated.

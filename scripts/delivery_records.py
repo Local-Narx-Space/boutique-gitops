@@ -7,7 +7,7 @@ from evidence import EvidenceError, ROOT, read_json, selected_image, verify_sign
 
 
 def validate_release(payload, service, image):
-    if not isinstance(payload, dict) or type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
+    if not isinstance(payload, dict) or type(payload.get("schema_version")) is not int or payload["schema_version"] != 2:
         raise EvidenceError("Unsupported release attestation schema")
     if service not in ("frontend", "catalogue", "cart", "orders", "incident-bridge"):
         raise EvidenceError("Invalid attested service")
@@ -24,6 +24,9 @@ def validate_release(payload, service, image):
             raise EvidenceError("Release attestation requires report checksums")
     if not isinstance(payload.get("build_url"), str) or not payload["build_url"].startswith(("http://", "https://")):
         raise EvidenceError("Release attestation requires trusted build provenance")
+    if service != "incident-bridge":
+        from helm_release import validate_chart
+        validate_chart(payload.get("chart"),service,payload["source_commit"])
     return payload
 
 
@@ -42,9 +45,10 @@ def write_delivery_record(service, environment, image, mode, release_record, rel
         return
     verified_release(release_record, release_public_key, service, image)
     record = {
-        "schema_version": 1, "mode": mode, "service": service,
+        "schema_version": 2, "mode": mode, "service": service,
         "environment": environment, "image": image,
         "previous_image": selected_image(root, service, environment),
+        "previous_chart": __import__("helm_release").selected_chart(root,service,environment),
         "release": read_json(release_record),
         "verification": read_json(verification_record) if verification_record else None,
     }

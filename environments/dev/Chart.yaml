@@ -1,0 +1,22 @@
+apiVersion: v2
+name: boutique-dev
+description: 'Boutique dev: signed service charts and environment policy'
+type: application
+version: 0.1.0
+dependencies:
+- name: boutique-frontend
+  alias: frontend
+  version: 0.1.0-bootstrap
+  repository: oci://ghcr.io/subhankar12-spec/charts
+- name: boutique-catalogue
+  alias: catalogue
+  version: 0.1.0-bootstrap
+  repository: oci://ghcr.io/subhankar12-spec/charts
+- name: boutique-cart
+  alias: cart
+  version: 0.1.0-bootstrap
+  repository: oci://ghcr.io/subhankar12-spec/charts
+- name: boutique-orders
+  alias: orders
+  version: 0.1.0-bootstrap
+  repository: oci://ghcr.io/subhankar12-spec/charts

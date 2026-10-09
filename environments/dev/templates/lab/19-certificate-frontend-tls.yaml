@@ -1,0 +1,26 @@
+{{- if .Values.lab.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: '-1'
+  name: frontend-tls
+  namespace: boutique-dev
+spec:
+  dnsNames:
+  - dev.boutique.test
+  duration: 2160h
+  issuerRef:
+    kind: ClusterIssuer
+    name: boutique-lab-ca
+  privateKey:
+    algorithm: RSA
+    rotationPolicy: Always
+    size: 2048
+  renewBefore: 360h
+  secretName: frontend-tls
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+{{- end }}

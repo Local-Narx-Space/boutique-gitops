@@ -1,0 +1,13 @@
+{{- if .Values.localDevelopment.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: boutique-staging
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app.kubernetes.io/name: postgres
+{{- end }}
