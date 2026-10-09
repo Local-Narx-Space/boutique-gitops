@@ -1,0 +1,118 @@
+profile: production
+applicationNamespaces:
+- boutique-production
+alloy:
+  cluster: production
+incidentBridge:
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: incident-bridge
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: incident-bridge
+      spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: incident-bridge
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: QUEUE_DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                key: QUEUE_DATABASE_URL
+                name: monitoring-incident-queue
+          - name: SERVICENOW_MODE
+            value: scripted
+          - name: WEBHOOK_TOKEN_FILE
+            value: /run/secrets/webhook_token
+          - name: SERVICENOW_URL
+            value: https://REPLACE.service-now.com
+          - name: SERVICENOW_USERNAME
+            value: boutique-integration
+          - name: SERVICENOW_PASSWORD_FILE
+            value: /run/secrets/servicenow_password
+          image: ghcr.io/subhankar12-spec/boutique-incident-bridge:replace-with-tested-digest
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+          name: incident-bridge
+          ports:
+          - containerPort: 8084
+            name: http
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+          - mountPath: /run/queue-ca
+            name: queue-ca
+            readOnly: true
+        securityContext:
+          fsGroup: 65532
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+        topologySpreadConstraints:
+        - labelSelector:
+            matchLabels:
+              app: incident-bridge
+          maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+        volumes:
+        - name: queue-ca
+          secret:
+            defaultMode: 292
+            items:
+            - key: postgresql_ca
+              path: ca.crt
+            secretName: monitoring-incident-queue
+        - configMap:
+            name: boutique-incident-bridge
+          name: config
+        - name: secrets
+          secret:
+            defaultMode: 292
+            items:
+            - key: webhook_token
+              path: webhook_token
+            - key: servicenow_password
+              path: servicenow_password
+            secretName: monitoring-integrations

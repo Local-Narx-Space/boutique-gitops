@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: GF_SECURITY_ADMIN_PASSWORD__FILE
+          value: /run/secrets/grafana_password
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: 'false'
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: 'false'
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: 'false'
+        - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+          value: 'false'
+        image: grafana/grafana@sha256:b28bae15e219c998fb0e0424ed724930cc61b1f61fb404d47c862f9a23f9e572
+        name: grafana
+        ports:
+        - containerPort: 3000
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: data
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /run/secrets
+          name: secrets
+          readOnly: true
+        - mountPath: /etc/grafana/provisioning/datasources/datasources.yml
+          name: config
+          subPath: datasources.yml
+        - mountPath: /etc/grafana/provisioning/dashboards/dashboards.yml
+          name: config
+          subPath: dashboards.yml
+        - mountPath: /var/lib/grafana/dashboards/boutique.json
+          name: config
+          subPath: boutique.json
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: grafana-data
+      - emptyDir: {}
+        name: tmp
+      - name: secrets
+        secret:
+          defaultMode: 292
+          items:
+          - key: grafana_password
+            path: grafana_password
+          secretName: monitoring-integrations
+      - configMap:
+          name: boutique-grafana
+        name: config

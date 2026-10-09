@@ -1,0 +1,6 @@
+profile: nonprod
+applicationNamespaces:
+- boutique-dev
+- boutique-staging
+alloy:
+  cluster: nonprod

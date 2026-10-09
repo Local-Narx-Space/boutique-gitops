@@ -1,0 +1,12 @@
+{{- if eq .Values.profile "production" }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: incident-bridge
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: incident-bridge
+{{- end }}

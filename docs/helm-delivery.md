@@ -43,4 +43,4 @@ python3 scripts/render.py dev --profile local
 ./scripts/validate.sh
 ```
 
-The existing Prometheus/Grafana/Alertmanager/Loki manifests still use Kustomize. They have their own monitoring delivery and secrets. The optional HA monitoring reference already uses Helm values; installing it and validating its live HA behavior remains separate work.
+Monitoring uses the dependency-free `monitoring/` Helm chart with cloud profile values and optional lab values. Its Argo sources, fixed Jenkins checks and lab scripts all render Helm. Legacy local databases and monitoring External Secrets are separate small charts. Monitoring keeps its own reviewed adapter release and secret provisioning. The optional HA monitoring reference also uses Helm values; installing it and validating its live HA behavior remains separate work. See [monitoring chart](../monitoring/README.md).

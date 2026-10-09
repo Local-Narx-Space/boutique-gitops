@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-loki
+  namespace: monitoring
+data:
+  config.yml: {{ (.Files.Get "files/common/boutique-loki/config.yml") | toJson }}

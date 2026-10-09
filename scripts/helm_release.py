@@ -110,7 +110,7 @@ def approved_argo_source(source, environment):
     from render import value_files
     if not isinstance(source,dict) or source.get('repoURL')!='https://github.com/subhankar12-spec/boutique-gitops.git' or source.get('targetRevision')!='main' or source.get('path')!=f'environments/{environment}':
         raise EvidenceError('Argo must use the approved Helm environment on GitOps main')
-    if any(source.get(k) for k in ('kustomize','plugin','directory','chart')):
+    if set(source)!={'repoURL','targetRevision','path','helm'}:
         raise EvidenceError('Unapproved Argo source overrides')
     helm=source.get('helm')
     if not isinstance(helm,dict) or set(helm)!={'releaseName','valueFiles'} or helm['releaseName']!='boutique-'+environment or helm['valueFiles'] not in (value_files(environment,'cloud'),value_files(environment,'lab')):

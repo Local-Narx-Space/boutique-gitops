@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-grafana
+  namespace: monitoring
+data:
+  boutique.json: {{ (.Files.Get "files/common/boutique-grafana/boutique.json") | toJson }}
+  dashboards.yml: {{ (.Files.Get "files/common/boutique-grafana/dashboards.yml") | toJson }}
+  datasources.yml: {{ (.Files.Get "files/common/boutique-grafana/datasources.yml") | toJson }}

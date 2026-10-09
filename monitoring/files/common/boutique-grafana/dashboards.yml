@@ -1,0 +1,6 @@
+apiVersion: 1
+providers:
+- name: Boutique
+  options:
+    path: /var/lib/grafana/dashboards
+  type: file

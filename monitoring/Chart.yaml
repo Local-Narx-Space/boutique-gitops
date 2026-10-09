@@ -1,0 +1,6 @@
+apiVersion: v2
+name: boutique-monitoring
+description: Boutique monitoring with cloud and production-lab Helm values
+type: application
+version: 0.1.0
+appVersion: 1.0.0

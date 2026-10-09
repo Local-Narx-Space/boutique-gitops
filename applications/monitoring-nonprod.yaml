@@ -48,7 +48,11 @@ spec:
   source:
     repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
     targetRevision: main
-    path: monitoring/profiles/nonprod
+    path: monitoring
+    helm:
+      releaseName: boutique-monitoring-nonprod
+      valueFiles:
+      - profiles/nonprod/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

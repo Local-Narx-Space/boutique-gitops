@@ -1,0 +1,10 @@
+{{- $spec := deepCopy .Values.alloy.spec -}}
+{{- range (first $spec.template.spec.containers).env -}}
+{{- if eq .name "CLUSTER_NAME" -}}{{- $_ := set . "value" $.Values.alloy.cluster -}}{{- end -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alloy
+  namespace: monitoring-logs
+spec:{{ $spec | toYaml | nindent 2 }}

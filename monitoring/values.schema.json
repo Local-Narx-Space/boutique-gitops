@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "applicationNamespaces",
+    "alloy",
+    "incidentBridge",
+    "lab"
+  ],
+  "properties": {
+    "profile": {
+      "enum": [
+        "base",
+        "homelab",
+        "nonprod",
+        "production"
+      ]
+    },
+    "applicationNamespaces": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "boutique-dev",
+          "boutique-staging",
+          "boutique-production"
+        ]
+      }
+    },
+    "alloy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cluster",
+        "spec"
+      ],
+      "properties": {
+        "cluster": {
+          "enum": [
+            "homelab",
+            "nonprod",
+            "production"
+          ]
+        },
+        "spec": {
+          "type": "object"
+        }
+      }
+    },
+    "incidentBridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "image",
+        "spec"
+      ],
+      "properties": {
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "repository",
+            "tag",
+            "digest"
+          ],
+          "properties": {
+            "repository": {
+              "const": "ghcr.io/subhankar12-spec/boutique-incident-bridge"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^(sha256:[a-f0-9]{64})?$"
+            }
+          },
+          "anyOf": [
+            {
+              "properties": {
+                "digest": {
+                  "pattern": "^sha256:[a-f0-9]{64}$"
+                },
+                "tag": {
+                  "const": ""
+                }
+              }
+            },
+            {
+              "properties": {
+                "digest": {
+                  "const": ""
+                },
+                "tag": {
+                  "enum": [
+                    "bootstrap",
+                    "replace-with-tested-digest"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "spec": {
+          "type": "object"
+        }
+      }
+    },
+    "lab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "lab": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "profile": {
+            "enum": [
+              "nonprod",
+              "production"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

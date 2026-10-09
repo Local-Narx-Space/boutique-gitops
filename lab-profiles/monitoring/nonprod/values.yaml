@@ -1,0 +1,95 @@
+lab:
+  enabled: true
+incidentBridge:
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: incident-bridge
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: incident-bridge
+      spec:
+        automountServiceAccountToken: false
+        containers:
+        - env:
+          - name: SERVICENOW_URL
+            value: http://mock-receivers:18080
+          - name: ALLOW_HTTP_MOCK
+            value: 'true'
+          - name: QUEUE_PATH
+            value: /data/queue.db
+          - name: WEBHOOK_TOKEN_FILE
+            value: /run/secrets/webhook_token
+          - name: SERVICENOW_USERNAME
+            value: boutique-integration
+          - name: SERVICENOW_PASSWORD_FILE
+            value: /run/secrets/servicenow_password
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+          name: incident-bridge
+          ports:
+          - containerPort: 8084
+            name: http
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+          - mountPath: /etc/incident-bridge
+            name: config
+            readOnly: true
+          - mountPath: /data
+            name: data
+          - mountPath: /run/secrets
+            name: secrets
+            readOnly: true
+        imagePullSecrets:
+        - name: ghcr-pull
+        securityContext:
+          fsGroup: 65532
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+        volumes:
+        - configMap:
+            name: boutique-incident-bridge
+          name: config
+        - name: data
+          persistentVolumeClaim:
+            claimName: incident-bridge-data
+        - name: secrets
+          secret:
+            defaultMode: 292
+            items:
+            - key: webhook_token
+              path: webhook_token
+            - key: servicenow_password
+              path: servicenow_password
+            secretName: monitoring-integrations

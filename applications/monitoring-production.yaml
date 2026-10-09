@@ -35,6 +35,8 @@ spec:
     kind: RoleBinding
   - group: networking.k8s.io
     kind: NetworkPolicy
+  - group: policy
+    kind: PodDisruptionBudget
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -46,7 +48,11 @@ spec:
   source:
     repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
     targetRevision: main
-    path: monitoring/profiles/production
+    path: monitoring
+    helm:
+      releaseName: boutique-monitoring-production
+      valueFiles:
+      - profiles/production/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

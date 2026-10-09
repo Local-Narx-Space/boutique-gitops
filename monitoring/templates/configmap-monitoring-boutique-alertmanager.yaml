@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boutique-alertmanager
+  namespace: monitoring
+data:
+  alertmanager.yml: {{ (.Files.Get "files/common/boutique-alertmanager/alertmanager.yml") | toJson }}

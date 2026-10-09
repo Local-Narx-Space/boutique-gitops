@@ -1,0 +1,12 @@
+{{- $spec := deepCopy .Values.incidentBridge.spec -}}
+{{- $image := printf "%s:%s" .Values.incidentBridge.image.repository .Values.incidentBridge.image.tag -}}
+{{- if .Values.incidentBridge.image.digest -}}
+{{- $image = printf "%s@%s" .Values.incidentBridge.image.repository .Values.incidentBridge.image.digest -}}
+{{- end -}}
+{{- $_ := set (first $spec.template.spec.containers) "image" $image -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-bridge
+  namespace: monitoring
+spec:{{ $spec | toYaml | nindent 2 }}

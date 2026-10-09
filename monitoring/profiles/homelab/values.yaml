@@ -1,0 +1,5 @@
+profile: homelab
+applicationNamespaces:
+- boutique-dev
+alloy:
+  cluster: homelab

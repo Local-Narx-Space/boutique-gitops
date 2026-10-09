@@ -1,0 +1,13 @@
+{{- if ne .Values.profile "production" }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: incident-bridge-data
+  namespace: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+{{- end }}
