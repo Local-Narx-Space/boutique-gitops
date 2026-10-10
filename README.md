@@ -49,3 +49,7 @@ Monitoring retains Prometheus, Grafana, Alertmanager, Loki and Alloy. Slack is
 the default receiver. ServiceNow and its incident queue are opt-in with
 `incidentBridge.enabled=true`, a reviewed image digest and securely provisioned
 integration credentials. See [the monitoring chart](monitoring/README.md).
+
+The standalone `dependencies/homelab` database chart is retained for compatibility.
+Current laptop/local application profiles already provide PostgreSQL/Redis;
+do not install that standalone chart alongside them in the same namespace.
