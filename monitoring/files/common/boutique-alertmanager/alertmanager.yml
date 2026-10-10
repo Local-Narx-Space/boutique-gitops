@@ -11,12 +11,6 @@ route:
   group_interval: 5m
   repeat_interval: 4h
   routes:
-  - receiver: servicenow
-    matchers:
-    - environment="production"
-    - severity="critical"
-    - incident_delivery!="disabled"
-    continue: true
   - receiver: slack
     matchers:
     - severity=~"warning|critical"
@@ -35,15 +29,8 @@ receivers:
   - api_url_file: /run/secrets/slack_webhook
     send_resolved: true
     title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
-    text: |-
-      {{ range .Alerts }}{{ .Annotations.summary }}
+    text: '{{ range .Alerts }}{{ .Annotations.summary }}
+
       {{ .Annotations.runbook_url }}
-      {{ end }}
-- name: servicenow
-  webhook_configs:
-  - url: http://incident-bridge:8084/alerts
-    send_resolved: true
-    http_config:
-      authorization:
-        type: Bearer
-        credentials_file: /run/secrets/webhook_token
+
+      {{ end }}'

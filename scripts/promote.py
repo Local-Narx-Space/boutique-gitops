@@ -1,49 +1,49 @@
 #!/usr/bin/env python3
-"""Select a digest; staging/production require signed preceding-env evidence."""
+"""Prepare a GitOps change; promotion copies an existing image and chart unchanged."""
 import argparse
 import json
+from pathlib import Path
+from release_config import ROOT, SERVICES, ENVIRONMENTS, ReleaseError, selected_image, validate_identity
+from helm_release import selected_chart, package_path, load, select_release
 
-import yaml
-
-from evidence import ROOT, EvidenceError, overlay, selected_image, validate_identity, verified_evidence
-from delivery_records import write_delivery_record, verified_release
-from helm_release import select_release, selected_chart, chart_identity, verified_package
-
+def promote(root, service, target, image=None, chart_package=None, source_commit=None):
+    if service not in SERVICES or target not in ENVIRONMENTS:
+        raise ReleaseError('Invalid service or environment')
+    if target == 'dev':
+        if not image or not chart_package or not source_commit:
+            raise ReleaseError('Dev requires a published digest, chart package and full source commit')
+        validate_identity(service, target, image)
+        version = '0.1.0-' + source_commit
+        path = Path(chart_package)
+        if path.is_symlink():
+            raise ReleaseError('Chart package cannot be a symbolic link')
+        package = path.read_bytes()
+    else:
+        if chart_package or source_commit:
+            raise ReleaseError('Promote the existing preceding-environment chart; do not replace it')
+        source = 'dev' if target == 'staging' else 'staging'
+        selected = selected_image(root, service, source)
+        if image and image != selected:
+            raise ReleaseError('Requested image differs from preceding environment')
+        image = selected
+        validate_identity(service, target, image)
+        chart = selected_chart(root, service, source)
+        version = chart['version']
+        package = load(root, package_path(service, source, version), binary=True)
+    select_release(root, service, target, image, version, package)
+    return {'service': service, 'environment': target, 'image': image, 'chart_version': version}
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("service")
-    parser.add_argument("target")
-    parser.add_argument("image")
-    parser.add_argument("--evidence")
-    parser.add_argument("--public-key")
-    parser.add_argument("--max-age-hours", type=float, default=24)
-    parser.add_argument("--release-record")
-    parser.add_argument("--release-public-key")
-    parser.add_argument("--chart-package")
+    parser.add_argument('service', choices=SERVICES)
+    parser.add_argument('target', choices=ENVIRONMENTS)
+    parser.add_argument('image', nargs='?')
+    parser.add_argument('--chart-package')
+    parser.add_argument('--source-commit')
     args = parser.parse_args()
     try:
-        validate_identity(args.service, args.target, args.image)
-        if args.target != "dev":
-            source = "dev" if args.target == "staging" else "staging"
-            if selected_image(ROOT, args.service, source) != args.image:
-                raise EvidenceError("Image must already be selected in " + source)
-            if not args.evidence or not args.public_key:
-                raise EvidenceError("Signed successful " + source + " verification evidence and trusted public key are required")
-            proof=verified_evidence(args.evidence, args.public_key, args.service, source, args.image, max_age_hours=args.max_age_hours)
-            if args.release_record:
-                release=verified_release(args.release_record,args.release_public_key,args.service,args.image)
-                if proof.get("chart")!=chart_identity(release["chart"]) or selected_chart(ROOT,args.service,source)!=proof["chart"]:
-                    raise EvidenceError("The same verified Helm chart must be promoted from "+source)
-        release=verified_release(args.release_record,args.release_public_key,args.service,args.image) if args.release_record else None
-        if release:
-            verified_package(release,args.service,args.chart_package)
-        write_delivery_record(args.service, args.target, args.image, "promote", args.release_record, args.release_public_key, args.evidence if args.target != "dev" else None)
-        select_release(ROOT,args.service,args.target,args.image,release,args.chart_package)
-        print(json.dumps({"image": args.image, "environment": args.target, "service": args.service}))
-    except (EvidenceError, OSError, KeyError, TypeError, ValueError) as error:
-        parser.exit(1, "Promotion rejected: " + str(error) + "\n")
-
-
-if __name__ == "__main__":
+        print(json.dumps(promote(ROOT, args.service, args.target, args.image, args.chart_package, args.source_commit)))
+    except (ReleaseError, OSError, KeyError, TypeError, ValueError) as error:
+        parser.exit(1, 'Promotion rejected: ' + str(error) + '\n')
+if __name__ == '__main__':
     main()

@@ -1,3 +1,4 @@
+{{- if .Values.incidentBridge.enabled }}
 {{- if ne .Values.profile "production" }}
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -10,4 +11,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
+{{- end }}
+
 {{- end }}

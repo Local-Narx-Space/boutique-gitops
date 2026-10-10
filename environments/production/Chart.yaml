@@ -1,6 +1,6 @@
 apiVersion: v2
 name: boutique-production
-description: 'Boutique production: signed service charts and environment policy'
+description: 'Boutique production: versioned service charts and environment policy'
 type: application
 version: 0.1.0
 dependencies:

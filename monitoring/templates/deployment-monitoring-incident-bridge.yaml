@@ -1,3 +1,4 @@
+{{- if .Values.incidentBridge.enabled }}
 {{- $spec := deepCopy .Values.incidentBridge.spec -}}
 {{- $image := printf "%s:%s" .Values.incidentBridge.image.repository .Values.incidentBridge.image.tag -}}
 {{- if .Values.incidentBridge.image.digest -}}
@@ -10,3 +11,5 @@ metadata:
   name: incident-bridge
   namespace: monitoring
 spec:{{ $spec | toYaml | nindent 2 }}
+
+{{- end }}

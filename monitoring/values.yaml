@@ -63,6 +63,7 @@ alloy:
         - emptyDir: {}
           name: state
 incidentBridge:
+  enabled: false
   image:
     repository: ghcr.io/subhankar12-spec/boutique-incident-bridge
     tag: replace-with-tested-digest

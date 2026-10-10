@@ -1,23 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/.."
-for env in dev staging production; do
-  python3 scripts/render.py "$env" --lint
-  python3 scripts/render.py "$env" | kubeconform -strict -summary -kubernetes-version 1.34.0
-  python3 scripts/render.py "$env" --profile lab --lint
-  python3 scripts/render.py "$env" --profile lab | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip Certificate,Issuer
- done
-python3 scripts/check_rendered_images.py
-for profile in homelab nonprod production; do
-  python3 scripts/render-monitoring.py "$profile" --lint
-  python3 scripts/render-monitoring.py "$profile" | kubeconform -strict -summary -kubernetes-version 1.34.0
+TOOLS=$(cd "$(dirname "$0")" && pwd)
+ROOT=${1:-"$(dirname "$TOOLS")"}
+ROOT=$(cd "$ROOT" && pwd)
+# Helm inputs cannot traverse into agent state; candidate files are data only.
+python3 - "$ROOT" "$TOOLS" <<'INPUTS'
+from pathlib import Path
+import sys
+root=Path(sys.argv[1])
+sys.path.insert(0, sys.argv[2])
+from helm_release import selected_chart
+from release_config import ENVIRONMENTS, SERVICES
+for folder in ('environments','lab-profiles','laptop-profiles','monitoring','dependencies','platform'):
+    for path in (root/folder).rglob('*'):
+        if path.is_symlink(): raise SystemExit('Symlinks are not allowed in Helm/configuration inputs')
+for environment in ENVIRONMENTS:
+    for service in SERVICES:
+        selected_chart(root, service, environment)
+INPUTS
+PRIVATE_VALIDATION=$(mktemp -d)
+trap 'rm -rf "$PRIVATE_VALIDATION"' EXIT
+export KUBECONFIG="$PRIVATE_VALIDATION/unavailable"
+for environment in dev staging production; do
+  for profile in cloud lab; do
+    python3 "$TOOLS/render.py" "$environment" --root "$ROOT" --profile "$profile" --lint
+    python3 "$TOOLS/render.py" "$environment" --root "$ROOT" --profile "$profile" | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip Certificate,Issuer
+  done
 done
-
+python3 "$TOOLS/check_rendered_images.py" --root "$ROOT"
+for profile in homelab nonprod production; do
+  python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lint
+  python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" | kubeconform -strict -summary -kubernetes-version 1.34.0
+done
 for profile in nonprod production; do
-  python3 scripts/render-monitoring.py "$profile" --lab --lint
-  python3 scripts/render-monitoring.py "$profile" --lab | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip Certificate
+  python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lab --lint
+  python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lab | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip Certificate
 done
 for chart in dependencies/homelab platform/external-secrets/monitoring; do
-  helm lint --strict "$chart"
-  helm template boutique-aux "$chart" | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip ExternalSecret,SecretStore
+  helm lint --strict "$ROOT/$chart"
+  helm template boutique-aux "$ROOT/$chart" | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip ExternalSecret,SecretStore
 done
+python3 "$TOOLS/render.py" dev --root "$ROOT" --profile laptop --lint
+python3 "$TOOLS/render.py" dev --root "$ROOT" --profile laptop | kubeconform -strict -summary -kubernetes-version 1.34.0

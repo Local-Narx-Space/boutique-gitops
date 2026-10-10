@@ -1,3 +1,4 @@
+{{- if .Values.incidentBridge.enabled }}
 {{- if .Values.lab.enabled }}
 {{- if eq .Values.profile "production" }}
 ---
@@ -150,4 +151,6 @@ metadata:
 data:
   pg_hba.conf: {{ .Files.Get "files/lab/queue-postgres/pg_hba.conf" | toJson }}
 {{- end }}
+{{- end }}
+
 {{- end }}

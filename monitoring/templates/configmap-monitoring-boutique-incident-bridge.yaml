@@ -1,6 +1,9 @@
+{{- if .Values.incidentBridge.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: boutique-incident-bridge
   namespace: monitoring
 data: {}
+
+{{- end }}

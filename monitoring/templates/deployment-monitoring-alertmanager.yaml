@@ -81,6 +81,8 @@ spec:
           items:
           - key: slack_webhook
             path: slack_webhook
+          {{- if .Values.incidentBridge.enabled }}
           - key: webhook_token
             path: webhook_token
+          {{- end }}
           secretName: monitoring-integrations

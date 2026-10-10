@@ -1,15 +1,2 @@
-# Signed image/chart selection changes can auto-merge in dev.
-/scripts/ @subhankar12-spec
-/schemas/ @subhankar12-spec
-/environments/*/templates/ @subhankar12-spec
-/environments/*/values.yaml @subhankar12-spec
-/environments/staging/ @subhankar12-spec
-/environments/production/ @subhankar12-spec
-/promotionrecords/staging/ @subhankar12-spec
-/promotionrecords/production/ @subhankar12-spec
-/lab-profiles/ @subhankar12-spec
-/homelab/ @subhankar12-spec
-/platform/ @subhankar12-spec
-/dependencies/ @subhankar12-spec
-/monitoring/ @subhankar12-spec
-/.github/ @subhankar12-spec
+# Use a separate release-bot identity for PR creation; the owner reviews.
+* @subhankar12-spec

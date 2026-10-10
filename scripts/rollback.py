@@ -1,50 +1,31 @@
 #!/usr/bin/env python3
-"""Prepare a GitOps rollback to a previously verified same-environment digest."""
+"""Restore a service's image and chart from a previous protected-main Git commit."""
 import argparse
 import json
+import re
+from release_config import ROOT, SERVICES, ENVIRONMENTS, ReleaseError, git, selected_image, validate_identity
+from helm_release import selected_chart, package_path, load, select_release
 
-import yaml
-
-from evidence import ROOT, EvidenceError, git, overlay, selected_image, validate_identity, verified_evidence
-from delivery_records import write_delivery_record, verified_release
-from helm_release import select_release, selected_chart, chart_identity, verified_package
-
+def rollback(root, service, target, commit):
+    if service not in SERVICES or target not in ENVIRONMENTS or not re.fullmatch('[a-f0-9]{40}', commit):
+        raise ReleaseError('Expected approved service/environment and full GitOps commit')
+    git(root, 'merge-base', '--is-ancestor', commit, 'origin/main')
+    image = selected_image(root, service, target, commit)
+    validate_identity(service, target, image)
+    chart = selected_chart(root, service, target, commit)
+    package = load(root, package_path(service, target, chart['version']), commit, binary=True)
+    select_release(root, service, target, image, chart['version'], package)
+    return {'service': service, 'environment': target, 'image': image, 'restored_commit': commit}
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("service")
-    parser.add_argument("target")
-    parser.add_argument("image")
-    parser.add_argument("--evidence", required=True)
-    parser.add_argument("--public-key", required=True)
-    parser.add_argument("--current-image", required=True, help="Expected currently selected digest; prevents a stale rollback")
-    parser.add_argument("--max-age-hours", type=float, default=720)
-    parser.add_argument("--release-record")
-    parser.add_argument("--release-public-key")
-    parser.add_argument("--chart-package")
+    parser.add_argument('service', choices=SERVICES)
+    parser.add_argument('target', choices=ENVIRONMENTS)
+    parser.add_argument('commit', help='Previous protected-main commit containing the working release')
     args = parser.parse_args()
     try:
-        validate_identity(args.service, args.target, args.image)
-        validate_identity(args.service, args.target, args.current_image)
-        if selected_image(ROOT, args.service, args.target) != args.current_image:
-            raise EvidenceError("Current environment image changed; re-evaluate the rollback")
-        original=verified_release(args.release_record,args.release_public_key,args.service,args.image) if args.release_record else None
-        if args.image == args.current_image and (not original or chart_identity(original["chart"])==selected_chart(ROOT,args.service,args.target)):
-            raise EvidenceError("Rollback image and chart are already selected")
-        payload = verified_evidence(args.evidence, args.public_key, args.service, args.target, args.image, max_age_hours=args.max_age_hours)
-        if payload["gitops_commit"] == git(ROOT, "rev-parse", "HEAD"):
-            raise EvidenceError("Rollback requires an earlier verified deployment")
-        release=verified_release(args.release_record,args.release_public_key,args.service,args.image) if args.release_record else None
-        if release and payload.get("chart")!=chart_identity(release["chart"]):
-            raise EvidenceError("Rollback chart differs from previous verified deployment")
-        if release:
-            verified_package(release,args.service,args.chart_package)
-        write_delivery_record(args.service, args.target, args.image, "rollback", args.release_record, args.release_public_key, args.evidence)
-        select_release(ROOT,args.service,args.target,args.image,release,args.chart_package)
-        print(json.dumps({"image": args.image, "previous_image": args.current_image, "environment": args.target, "service": args.service, "verified_build": payload["build_url"]}))
-    except (EvidenceError, OSError, KeyError, TypeError, ValueError) as error:
-        parser.exit(1, "Rollback rejected: " + str(error) + "\n")
-
-
-if __name__ == "__main__":
+        print(json.dumps(rollback(ROOT, args.service, args.target, args.commit)))
+    except (ReleaseError, OSError, KeyError, TypeError, ValueError) as error:
+        parser.exit(1, 'Rollback rejected: ' + str(error) + '\n')
+if __name__ == '__main__':
     main()

@@ -4,4 +4,8 @@ metadata:
   name: boutique-alertmanager
   namespace: monitoring
 data:
+  {{- if .Values.incidentBridge.enabled }}
+  alertmanager.yml: {{ (.Files.Get "files/common/boutique-alertmanager/alertmanager-servicenow.yml") | toJson }}
+  {{- else }}
   alertmanager.yml: {{ (.Files.Get "files/common/boutique-alertmanager/alertmanager.yml") | toJson }}
+  {{- end }}

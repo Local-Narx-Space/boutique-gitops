@@ -1,6 +1,6 @@
 apiVersion: v2
 name: boutique-dev
-description: 'Boutique dev: signed service charts and environment policy'
+description: 'Boutique dev: versioned service charts and environment policy'
 type: application
 version: 0.1.0
 dependencies:

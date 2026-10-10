@@ -4,31 +4,34 @@ import argparse
 from pathlib import Path
 import subprocess
 
-from evidence import ROOT, ENVIRONMENTS, EvidenceError
+from release_config import ROOT, ENVIRONMENTS, ReleaseError
 
 
 def value_files(environment, profile='cloud'):
     files=['values.yaml','releases.yaml']
     if profile=='lab':files.append(f'../../lab-profiles/{environment}/values.yaml')
     elif profile=='local':files.append(f'../../homelab/{environment}/values.yaml')
-    elif profile!='cloud':raise EvidenceError('Invalid Helm profile')
+    elif profile=='laptop':
+        if environment != 'dev':raise ReleaseError('Laptop profile is dev-only')
+        files.append('../../laptop-profiles/dev/values.yaml')
+    elif profile!='cloud':raise ReleaseError('Invalid Helm profile')
     return files
 
 
 def render(root, environment, profile='cloud', helm='helm', lint=False):
-    if environment not in ENVIRONMENTS:raise EvidenceError('Invalid Helm environment')
+    if environment not in ENVIRONMENTS:raise ReleaseError('Invalid Helm environment')
     folder=Path(root)/'environments'/environment
     arguments=[helm,'lint','--strict',str(folder)] if lint else [helm,'template','boutique-'+environment,str(folder),'--namespace','boutique-'+environment,'--include-crds']
     for name in value_files(environment,profile):arguments+=['--values',str(folder/name)]
     result=subprocess.run(arguments,capture_output=True,text=True)
-    if result.returncode:raise EvidenceError('Helm profile validation/render failed: '+result.stderr.strip())
+    if result.returncode:raise ReleaseError('Helm profile validation/render failed: '+result.stderr.strip())
     return result.stdout
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('environment',choices=ENVIRONMENTS);p.add_argument('--profile',choices=['cloud','lab','local'],default='cloud');p.add_argument('--root',type=Path,default=ROOT);p.add_argument('--helm',default='helm');p.add_argument('--lint',action='store_true');args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('environment',choices=ENVIRONMENTS);p.add_argument('--profile',choices=['cloud','lab','local','laptop'],default='cloud');p.add_argument('--root',type=Path,default=ROOT);p.add_argument('--helm',default='helm');p.add_argument('--lint',action='store_true');args=p.parse_args()
     try:print(render(args.root,args.environment,args.profile,args.helm,args.lint),end='')
-    except (EvidenceError,OSError,ValueError) as error:p.exit(1,'Helm render rejected: '+str(error)+'\n')
+    except (ReleaseError,OSError,ValueError) as error:p.exit(1,'Helm render rejected: '+str(error)+'\n')
 
 
 if __name__=='__main__':main()

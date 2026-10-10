@@ -1,3 +1,15 @@
+# Default mode: Slack and standard observability
+
+Prometheus, Grafana, Alertmanager, Loki and Alloy remain enabled. ServiceNow is
+**optional**, with `incidentBridge.enabled=false` by default. In this mode no
+incident worker/queue resources render, Alertmanager has only the Slack receiver,
+and its secret projection only requires `slack_webhook`.
+
+To practise ServiceNow explicitly, set `incidentBridge.enabled=true`, select a
+tested adapter image digest, supply integration credentials and queue data before
+syncing. The profiles/queue details below apply to that opt-in mode. Do not enable
+it merely to get the app or standard monitoring running.
+
 # Boutique monitoring Helm chart
 
 This dependency-free chart owns Prometheus, Grafana, Alertmanager, Loki, Alloy,

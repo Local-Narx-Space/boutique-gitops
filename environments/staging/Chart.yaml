@@ -1,6 +1,6 @@
 apiVersion: v2
 name: boutique-staging
-description: 'Boutique staging: signed service charts and environment policy'
+description: 'Boutique staging: versioned service charts and environment policy'
 type: application
 version: 0.1.0
 dependencies:

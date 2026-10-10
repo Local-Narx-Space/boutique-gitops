@@ -1,0 +1,243 @@
+lab:
+  enabled: false
+localDevelopment:
+  enabled: true
+frontend:
+  replicaCount: 1
+  pdb:
+    enabled: false
+  deployment:
+    template:
+      spec:
+        containers:
+        - env:
+          - name: PUBLIC_ORIGIN
+            value: http://localhost:8088
+          - name: COOKIE_SECURE
+            value: 'false'
+          - name: CATALOGUE_URL
+            value: http://catalogue:8081
+          - name: CART_URL
+            value: http://cart:8082
+          - name: ORDERS_URL
+            value: http://orders:8083
+          - name: SESSION_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: secret
+                name: frontend-session
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+          name: frontend
+          ports:
+          - containerPort: 8080
+            name: http
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 7
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 3
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+catalogue:
+  replicaCount: 1
+  pdb:
+    enabled: false
+  deployment:
+    template:
+      spec:
+        containers:
+        - env: []
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+          name: catalogue
+          ports:
+          - containerPort: 8081
+            name: http
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 7
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 3
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+cart:
+  replicaCount: 1
+  pdb:
+    enabled: false
+  deployment:
+    template:
+      spec:
+        containers:
+        - env:
+          - name: REDIS_URL
+            valueFrom:
+              secretKeyRef:
+                key: url
+                name: cart-redis
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+          name: cart
+          ports:
+          - containerPort: 8082
+            name: http
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 7
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 3
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+orders:
+  replicaCount: 1
+  pdb:
+    enabled: false
+  deployment:
+    template:
+      spec:
+        containers:
+        - env:
+          - name: CATALOGUE_URL
+            value: http://catalogue:8081
+          - name: CART_URL
+            value: http://cart:8082
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                key: url
+                name: orders-database
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: orders-database
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: orders-database
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+          name: orders
+          ports:
+          - containerPort: 8083
+            name: http
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 7
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 768Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 3
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp
