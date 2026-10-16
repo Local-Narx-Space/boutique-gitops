@@ -1,8 +1,8 @@
 frontend:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-frontend
-    digest: ''
-    tag: bootstrap
+    digest: sha256:f1d0555ffce8935d4982ac060114a5065980b168088b39b9b358dc0b3080ae57
+    tag: ''
 catalogue:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-catalogue
