@@ -16,5 +16,5 @@ cart:
 orders:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-orders
-    digest: ''
-    tag: bootstrap
+    digest: sha256:3bde220dca5dd78a5a95e0aed2c8a12594401bc7d497db0a1911ccbc5abb02b1
+    tag: ''
