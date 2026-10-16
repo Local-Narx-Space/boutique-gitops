@@ -1,9 +1,8 @@
 discovery.kubernetes "pods" {
   role = "pod"
-  namespaces { names = ["boutique-dev"] }
+  namespaces { names = ["boutique-dev", "boutique-staging", "boutique-production", "monitoring", "monitoring-logs"] }
   selectors {
     role = "pod"
-    label = "app.kubernetes.io/part-of=boutique"
     field = "spec.nodeName=" + sys.env("NODE_NAME")
   }
 }
@@ -14,9 +13,20 @@ discovery.relabel "logs" {
     regex = "boutique-(.*)"
     replacement = "$1" }
   rule { source_labels = ["__meta_kubernetes_namespace"]
-    regex = "boutique-(dev|staging|production)"
+    regex = "boutique-(dev|staging|production)|monitoring(-logs)?"
     action = "keep" }
+  rule { source_labels = ["__meta_kubernetes_namespace"]
+    regex = "monitoring(-logs)?"
+    target_label = "environment"
+    replacement = "platform" }
+  rule { source_labels = ["__meta_kubernetes_namespace"]
+    target_label = "namespace" }
+  rule { source_labels = ["__meta_kubernetes_pod_name"]
+    target_label = "pod" }
+  rule { source_labels = ["__meta_kubernetes_pod_label_app"]
+    target_label = "service" }
   rule { source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+    regex = "(.+)"
     target_label = "service" }
   rule { source_labels = ["__meta_kubernetes_pod_container_name"]
     target_label = "container" }

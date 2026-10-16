@@ -1,4 +1,7 @@
 {{- $spec := deepCopy .Values.alloy.spec -}}
+{{- $annotations := default dict $spec.template.metadata.annotations -}}
+{{- $_ := set $annotations "checksum/config" (include (print $.Template.BasePath "/configmap-monitoring-logs-boutique-alloy.yaml") . | sha256sum) -}}
+{{- $_ := set $spec.template.metadata "annotations" $annotations -}}
 {{- range (first $spec.template.spec.containers).env -}}
 {{- if eq .name "CLUSTER_NAME" -}}{{- $_ := set . "value" $.Values.alloy.cluster -}}{{- end -}}
 {{- end -}}

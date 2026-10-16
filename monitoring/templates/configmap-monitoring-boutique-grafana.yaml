@@ -1,9 +1,23 @@
+{{- $dashboard := .Files.Get "files/common/boutique-grafana/boutique.json" | fromJson -}}
+{{- if not .Values.incidentBridge.enabled -}}
+{{- $panels := list -}}
+{{- range $panel := $dashboard.panels -}}
+{{- if not (has (int $panel.id) (list 6 7 11 12 13)) -}}
+{{- $panels = append $panels $panel -}}
+{{- end -}}
+{{- end -}}
+{{- $_ := set $dashboard "panels" $panels -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: boutique-grafana
   namespace: monitoring
 data:
-  boutique.json: {{ (.Files.Get "files/common/boutique-grafana/boutique.json") | toJson }}
+  boutique.json: {{ ($dashboard | toJson) | toJson }}
+  {{- if .Values.kubernetesMetrics.enabled }}
+  platform.json: {{ (.Files.Get "files/common/boutique-grafana/platform.json") | toJson }}
+  slo.json: {{ (.Files.Get "files/common/boutique-grafana/slo.json") | toJson }}
+  {{- end }}
   dashboards.yml: {{ (.Files.Get "files/common/boutique-grafana/dashboards.yml") | toJson }}
   datasources.yml: {{ (.Files.Get "files/common/boutique-grafana/datasources.yml") | toJson }}

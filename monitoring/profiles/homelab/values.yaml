@@ -1,12 +1,22 @@
 profile: homelab
 applicationNamespaces:
 - boutique-dev
+- boutique-staging
+- boutique-production
 alloy:
   cluster: homelab
 grafanaIngress:
   enabled: true
   host: grafana.narx.space
-# Current mega-local API backend; update if the kind cluster is recreated.
 kubernetesApiEndpoint:
   cidr: 172.18.0.4/32
   port: 6443
+kubernetesMetrics:
+  enabled: true
+  kubeStateMetricsImage: registry.k8s.io/kube-state-metrics/kube-state-metrics@sha256:42cfe3723a5f058171c627537fb57a3ea0f26e4380fa18555a95cb1a1b4cfc5b
+  nodeExporterImage: prom/node-exporter@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
+  blackboxExporterImage: prom/blackbox-exporter@sha256:9613f2884689b6fad9f1939f6a3b0388c93a022cfaededb19545b329b5c83dea
+prometheusStorage:
+  retentionTime: 35d
+  retentionSize: 4GB
+productionSlackWebhookKey: slack_webhook

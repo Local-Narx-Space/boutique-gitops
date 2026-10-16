@@ -1,0 +1,31 @@
+{{- if .Values.kubernetesMetrics.enabled }}
+{{- range $namespace := list "monitoring" "monitoring-logs" }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: monitoring-pod-discovery
+  namespace: {{ $namespace }}
+rules:
+- apiGroups: ['']
+  resources: [pods]
+  verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: monitoring-pod-discovery
+  namespace: {{ $namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: monitoring-pod-discovery
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: monitoring
+- kind: ServiceAccount
+  name: alloy
+  namespace: monitoring-logs
+{{- end }}
+{{- end }}

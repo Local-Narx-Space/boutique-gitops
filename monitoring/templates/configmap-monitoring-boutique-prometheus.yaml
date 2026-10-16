@@ -1,8 +1,28 @@
+{{- $config := .Files.Get (printf "files/%s/boutique-prometheus/prometheus.yml" .Values.profile) | fromYaml -}}
+{{- $jobs := list -}}
+{{- range $job := $config.scrape_configs -}}
+{{- if or $.Values.incidentBridge.enabled (ne $job.job_name "incident-bridge") -}}
+{{- if or $.Values.kubernetesMetrics.enabled (not (has $job.job_name (list "kube-state-metrics" "kube-state-metrics-self" "node-exporter" "alloy" "loki" "http-probe"))) -}}
+{{- $jobs = append $jobs $job -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $_ := set $config "scrape_configs" $jobs -}}
+{{- $rules := .Files.Get (printf "files/%s/boutique-prometheus/rules.yml" .Values.profile) | fromYaml -}}
+{{- range $group := $rules.groups -}}
+{{- $selected := list -}}
+{{- range $rule := $group.rules -}}
+{{- if or $.Values.incidentBridge.enabled (and (not (hasPrefix "Incident" (default "" $rule.alert))) (not (hasPrefix "boutique:incident:" (default "" $rule.record)))) -}}
+{{- $selected = append $selected $rule -}}
+{{- end -}}
+{{- end -}}
+{{- $_ := set $group "rules" $selected -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: boutique-prometheus
   namespace: monitoring
 data:
-  prometheus.yml: {{ (.Files.Get (printf "files/%s/boutique-prometheus/prometheus.yml" .Values.profile)) | toJson }}
-  rules.yml: {{ (.Files.Get (printf "files/%s/boutique-prometheus/rules.yml" .Values.profile)) | toJson }}
+  prometheus.yml: {{ ($config | toYaml) | toJson }}
+  rules.yml: {{ ($rules | toYaml) | toJson }}

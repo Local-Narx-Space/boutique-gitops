@@ -159,6 +159,70 @@
           "maximum": 65535
         }
       }
+    },
+    "kubernetesMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "kubeStateMetricsImage": {
+          "type": "string",
+          "pattern": "^.+@sha256:[a-f0-9]{64}$"
+        },
+        "nodeExporterImage": {
+          "type": "string",
+          "pattern": "^.+@sha256:[a-f0-9]{64}$"
+        },
+        "blackboxExporterImage": {
+          "type": "string",
+          "pattern": "^.+@sha256:[a-f0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "kubeStateMetricsImage",
+              "nodeExporterImage",
+              "blackboxExporterImage"
+            ]
+          }
+        }
+      ]
+    },
+    "prometheusStorage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retentionTime",
+        "retentionSize"
+      ],
+      "properties": {
+        "retentionTime": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*d$"
+        },
+        "retentionSize": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*(MB|GB|TB)$"
+        }
+      }
+    },
+    "productionSlackWebhookKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
     }
   },
   "allOf": [

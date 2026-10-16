@@ -1,0 +1,58 @@
+{{- if .Values.kubernetesMetrics.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: blackbox-exporter}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-monitoring-boutique-blackbox.yaml") . | sha256sum }}
+      labels: {app: blackbox-exporter}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+      - name: blackbox-exporter
+        image: {{ .Values.kubernetesMetrics.blackboxExporterImage | quote }}
+        args: [--config.file=/etc/blackbox/blackbox.yml]
+        ports:
+        - {name: metrics, containerPort: 9115}
+        readinessProbe:
+          httpGet: {path: /-/healthy, port: metrics}
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet: {path: /-/healthy, port: metrics}
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+        resources:
+          requests: {cpu: 50m, memory: 64Mi}
+          limits: {cpu: 500m, memory: 256Mi}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: {drop: [ALL]}
+        volumeMounts:
+        - {name: config, mountPath: /etc/blackbox, readOnly: true}
+      volumes:
+      - name: config
+        configMap: {name: boutique-blackbox}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blackbox-exporter
+  namespace: monitoring
+spec:
+  selector: {app: blackbox-exporter}
+  ports:
+  - {name: metrics, port: 9115, targetPort: metrics}
+{{- end }}

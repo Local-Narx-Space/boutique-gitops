@@ -12,6 +12,8 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-monitoring-boutique-alertmanager.yaml") . | sha256sum }}
       labels:
         app: alertmanager
     spec:
@@ -81,6 +83,10 @@ spec:
           items:
           - key: slack_webhook
             path: slack_webhook
+          {{- if and (eq .Values.profile "homelab") (not .Values.incidentBridge.enabled) }}
+          - key: {{ .Values.productionSlackWebhookKey }}
+            path: slack_webhook_production
+          {{- end }}
           {{- if .Values.incidentBridge.enabled }}
           - key: webhook_token
             path: webhook_token

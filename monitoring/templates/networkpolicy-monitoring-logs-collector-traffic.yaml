@@ -4,6 +4,17 @@ metadata:
   name: collector-traffic
   namespace: monitoring-logs
 spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+      podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - port: 12345
+      protocol: TCP
   egress:
   - ports:
     - port: 3100
@@ -29,3 +40,4 @@ spec:
       app: alloy
   policyTypes:
   - Egress
+  - Ingress

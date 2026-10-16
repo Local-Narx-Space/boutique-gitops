@@ -13,6 +13,10 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: boutique-dev
     server: https://kubernetes.default.svc
+  - namespace: boutique-staging
+    server: https://kubernetes.default.svc
+  - namespace: boutique-production
+    server: https://kubernetes.default.svc
   clusterResourceWhitelist:
   - group: ''
     kind: Namespace

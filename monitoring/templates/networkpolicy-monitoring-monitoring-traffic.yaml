@@ -8,6 +8,26 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
+          kubernetes.io/metadata.name: monitoring-logs
+      podSelector:
+        matchLabels:
+          app: node-exporter
+    ports:
+    - port: 9100
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring-logs
+      podSelector:
+        matchLabels:
+          app: alloy
+    ports:
+    - port: 12345
+      protocol: TCP
+  - to:
+    - namespaceSelector:
+        matchLabels:
           kubernetes.io/metadata.name: monitoring
   - ports:
     - port: 8080

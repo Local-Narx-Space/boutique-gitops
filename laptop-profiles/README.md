@@ -57,9 +57,9 @@ python3 scripts/render.py staging --profile laptop --lint
 python3 scripts/render.py production --profile laptop --lint
 ```
 
-Current homelab monitoring discovers dev only. Adding a release environment does
-not automatically add it to Prometheus, Alloy or alert scope; expand those via a
-separate reviewed monitoring change before declaring its monitoring verified.
+The shared homelab monitoring profile now includes dev, staging and production
+metrics, logs and alert scope. Reapply its AppProject and sync monitoring after
+upgrading, then verify live collection. See monitoring/README.md for details.
 
 ## Normal operation after bootstrap
 

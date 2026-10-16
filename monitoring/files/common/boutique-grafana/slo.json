@@ -1,0 +1,230 @@
+{
+  "uid": "boutique-production-slo",
+  "title": "Boutique production SLOs",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "boutique",
+    "platform"
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Production availability \u00b7 30-day observed ratio",
+      "type": "timeseries",
+      "description": "Thirty-day ratios require a full continuous collection window. No traffic gives unknown (NaN), not success. Time retention is 35 days but the size cap may evict history earlier.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "1 - ((sum(increase(boutique_http_requests_total{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"5..\"}[30d])) or (0 * sum(increase(boutique_http_requests_total{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[235]..\"}[30d])))) / sum(increase(boutique_http_requests_total{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[235]..\"}[30d])))",
+          "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Production latency within one second \u00b7 30-day observed ratio",
+      "type": "timeseries",
+      "description": "Thirty-day ratios require a full continuous collection window. No traffic gives unknown (NaN), not success. Time retention is 35 days but the size cap may evict history earlier.",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(boutique_http_request_duration_seconds_bucket{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[23]..\",le=\"1\"}[30d])) / sum(increase(boutique_http_request_duration_seconds_count{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[23]..\"}[30d]))",
+          "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Availability budget burn \u00b7 1h",
+      "type": "timeseries",
+      "description": "",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "boutique:slo_api_errors:ratio1h{environment=\"production\"} / 0.001",
+          "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Latency budget burn \u00b7 1h",
+      "type": "timeseries",
+      "description": "",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "boutique:slo_api_slow:ratio1h{environment=\"production\"} / 0.01",
+          "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Eligible production API requests \u00b7 1h",
+      "type": "timeseries",
+      "description": "",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "boutique:slo_api_eligible:increase1h{environment=\"production\"}",
+          "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Production firing SLO alerts",
+      "type": "timeseries",
+      "description": "",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ALERTS{environment=\"production\",slo=~\"errors|slow\",alertstate=\"firing\"}",
+          "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    }
+  ]
+}

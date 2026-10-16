@@ -12,6 +12,8 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-monitoring-boutique-grafana.yaml") . | sha256sum }}
       labels:
         app: grafana
     spec:
@@ -79,6 +81,14 @@ spec:
         - mountPath: /var/lib/grafana/dashboards/boutique.json
           name: config
           subPath: boutique.json
+        {{- if .Values.kubernetesMetrics.enabled }}
+        - mountPath: /var/lib/grafana/dashboards/platform.json
+          name: config
+          subPath: platform.json
+        - mountPath: /var/lib/grafana/dashboards/slo.json
+          name: config
+          subPath: slo.json
+        {{- end }}
       securityContext:
         fsGroup: 472
         runAsGroup: 472

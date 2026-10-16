@@ -12,6 +12,8 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-monitoring-boutique-prometheus.yaml") . | sha256sum }}
       labels:
         app: prometheus
     spec:
@@ -20,7 +22,8 @@ spec:
       - args:
         - --config.file=/etc/prometheus/prometheus.yml
         - --storage.tsdb.path=/data
-        - --storage.tsdb.retention.time=7d
+        - --storage.tsdb.retention.time={{ .Values.prometheusStorage.retentionTime }}
+        - --storage.tsdb.retention.size={{ .Values.prometheusStorage.retentionSize }}
         image: prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
         livenessProbe:
           httpGet:

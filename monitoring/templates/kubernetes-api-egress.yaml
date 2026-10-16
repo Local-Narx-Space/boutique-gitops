@@ -1,10 +1,14 @@
 {{- if .Values.kubernetesApiEndpoint }}
-{{- range $collector := list (dict "namespace" "monitoring" "app" "prometheus") (dict "namespace" "monitoring-logs" "app" "alloy") }}
+{{- $collectors := list (dict "namespace" "monitoring" "app" "prometheus") (dict "namespace" "monitoring-logs" "app" "alloy") }}
+{{- if .Values.kubernetesMetrics.enabled }}
+{{- $collectors = append $collectors (dict "namespace" "monitoring" "app" "kube-state-metrics") }}
+{{- end }}
+{{- range $collector := $collectors }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: collector-kubernetes-api
+  name: {{ if eq $collector.app "kube-state-metrics" }}kube-state-metrics-kubernetes-api{{ else }}collector-kubernetes-api{{ end }}
   namespace: {{ $collector.namespace }}
 spec:
   podSelector:

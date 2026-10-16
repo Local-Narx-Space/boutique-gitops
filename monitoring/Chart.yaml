@@ -1,6 +1,6 @@
 apiVersion: v2
 name: boutique-monitoring
-description: Boutique monitoring with cloud and production-lab Helm values
+description: Shared application and platform observability with cloud and production-lab profiles
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: 1.0.0

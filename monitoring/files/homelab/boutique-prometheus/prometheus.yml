@@ -15,8 +15,10 @@ scrape_configs:
   kubernetes_sd_configs:
   - role: pod
     namespaces:
-      names:
+      names: &id001
       - boutique-dev
+      - boutique-staging
+      - boutique-production
     selectors:
     - role: pod
       label: app.kubernetes.io/part-of=boutique
@@ -51,8 +53,7 @@ scrape_configs:
   kubernetes_sd_configs:
   - role: pod
     namespaces:
-      names:
-      - boutique-dev
+      names: *id001
     selectors:
     - role: pod
       label: app.kubernetes.io/part-of=boutique
@@ -86,10 +87,16 @@ scrape_configs:
   static_configs:
   - targets:
     - localhost:9090
+    labels:
+      cluster: homelab
+      environment: platform
 - job_name: alertmanager
   static_configs:
   - targets:
     - alertmanager:9093
+    labels:
+      cluster: homelab
+      environment: platform
 - job_name: incident-bridge
   metrics_path: /metrics
   kubernetes_sd_configs:
@@ -125,3 +132,105 @@ scrape_configs:
     replacement: dev
   - target_label: cluster
     replacement: homelab
+- job_name: kube-state-metrics
+  static_configs:
+  - targets:
+    - kube-state-metrics:8080
+    labels:
+      cluster: homelab
+      environment: platform
+  metric_relabel_configs:
+  - source_labels:
+    - namespace
+    regex: boutique-(.*)
+    target_label: environment
+    replacement: $1
+- job_name: kube-state-metrics-self
+  static_configs:
+  - targets:
+    - kube-state-metrics:8081
+    labels:
+      cluster: homelab
+      environment: platform
+- job_name: node-exporter
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - monitoring-logs
+    selectors:
+    - role: pod
+      label: app=node-exporter
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_pod_container_port_name
+    regex: metrics
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_pod_node_name
+    target_label: node
+  - target_label: cluster
+    replacement: homelab
+  - target_label: environment
+    replacement: platform
+- job_name: loki
+  static_configs:
+  - targets:
+    - loki:3100
+    labels:
+      cluster: homelab
+      environment: platform
+- job_name: alloy
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - monitoring-logs
+    selectors:
+    - role: pod
+      label: app=alloy
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_pod_container_port_name
+    regex: metrics
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_pod_node_name
+    target_label: node
+  - target_label: cluster
+    replacement: homelab
+  - target_label: environment
+    replacement: platform
+- job_name: http-probe
+  metrics_path: /probe
+  params:
+    module:
+    - https_ready
+  static_configs:
+  - targets:
+    - https://boutique.narx.space/health/ready
+    labels:
+      cluster: homelab
+      environment: dev
+      service: frontend
+  - targets:
+    - https://staging-boutique.narx.space/health/ready
+    labels:
+      cluster: homelab
+      environment: staging
+      service: frontend
+  - targets:
+    - https://shop.narx.space/health/ready
+    labels:
+      cluster: homelab
+      environment: production
+      service: frontend
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter:9115

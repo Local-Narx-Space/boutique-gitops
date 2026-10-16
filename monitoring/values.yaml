@@ -17,6 +17,7 @@ alloy:
           - run
           - /etc/alloy/config.alloy
           - --storage.path=/var/lib/alloy
+          - --server.http.listen-addr=0.0.0.0:12345
           env:
           - name: NODE_NAME
             valueFrom:
@@ -51,6 +52,20 @@ alloy:
             readOnly: true
           - mountPath: /var/lib/alloy
             name: state
+          ports:
+          - name: metrics
+            containerPort: 12345
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: metrics
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: metrics
+            timeoutSeconds: 3
+            initialDelaySeconds: 30
         serviceAccountName: alloy
         volumes:
         - configMap:
@@ -60,8 +75,15 @@ alloy:
             path: /var/log/pods
             type: Directory
           name: logs
-        - emptyDir: {}
-          name: state
+        - name: state
+          hostPath:
+            path: /var/lib/boutique-alloy
+            type: DirectoryOrCreate
+        nodeSelector:
+          kubernetes.io/os: linux
+        tolerations:
+        - operator: Exists
+          effect: NoSchedule
 incidentBridge:
   enabled: false
   image:
@@ -159,3 +181,9 @@ incidentBridge:
             secretName: monitoring-integrations
 lab:
   enabled: false
+kubernetesMetrics:
+  enabled: false
+prometheusStorage:
+  retentionTime: 7d
+  retentionSize: 4GB
+productionSlackWebhookKey: slack_webhook
