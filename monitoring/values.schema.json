@@ -123,6 +123,23 @@
           "type": "boolean"
         }
       }
+    },
+    "grafanaIngress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "host"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   },
   "allOf": [

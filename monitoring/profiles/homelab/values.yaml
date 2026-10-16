@@ -3,3 +3,6 @@ applicationNamespaces:
 - boutique-dev
 alloy:
   cluster: homelab
+grafanaIngress:
+  enabled: true
+  host: grafana.narx.space

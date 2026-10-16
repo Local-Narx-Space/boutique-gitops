@@ -78,3 +78,14 @@ Local lab values deliberately route to internal mocks and preserve private image
 pull Secret references. Cloud profiles require actual TLS queue credentials and
 notification configuration. See `boutique-platform/docs/monitoring.md` for
 activation, operational checks and known HA limits.
+
+## Homelab Grafana through Cloudflare
+
+The homelab profile enables an NGINX Ingress at grafana.narx.space, scoped
+controller access to Grafana TCP 3000, HTTPS root URL, and secure cookies.
+Grafana authentication remains enabled. Other monitoring services stay internal.
+Reapply applications/monitoring-homelab.yaml to allow Ingress in its AppProject,
+then refresh and sync the monitoring Application. In the Debian-hosted Homelab
+Cloudflare tunnel add grafana.narx.space with service HTTP 127.0.0.1:80 and
+HTTP Host Header grafana.narx.space. Public TLS terminates at Cloudflare;
+cloudflared uses HTTP to local NGINX after the encrypted tunnel.

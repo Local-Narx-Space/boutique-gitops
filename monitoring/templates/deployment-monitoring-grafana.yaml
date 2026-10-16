@@ -18,6 +18,12 @@ spec:
       automountServiceAccountToken: false
       containers:
       - env:
+{{- if (.Values.grafanaIngress | default dict).enabled }}
+        - name: GF_SERVER_ROOT_URL
+          value: {{ printf "https://%s" .Values.grafanaIngress.host | quote }}
+        - name: GF_SECURITY_COOKIE_SECURE
+          value: 'true'
+{{- end }}
         - name: GF_SECURITY_ADMIN_PASSWORD__FILE
           value: /run/secrets/grafana_password
         - name: GF_USERS_ALLOW_SIGN_UP

@@ -35,6 +35,8 @@ spec:
     kind: RoleBinding
   - group: networking.k8s.io
     kind: NetworkPolicy
+  - group: networking.k8s.io
+    kind: Ingress
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
