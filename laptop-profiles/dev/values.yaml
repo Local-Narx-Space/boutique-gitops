@@ -12,9 +12,9 @@ frontend:
         containers:
         - env:
           - name: PUBLIC_ORIGIN
-            value: http://localhost:8088
+            value: https://boutique.narx.space
           - name: COOKIE_SECURE
-            value: 'false'
+            value: 'true'
           - name: CATALOGUE_URL
             value: http://catalogue:8081
           - name: CART_URL
@@ -249,3 +249,6 @@ orders:
             name: tmp
         imagePullSecrets:
         - name: ghcr-pull
+laptopIngress:
+  enabled: true
+  host: boutique.narx.space
