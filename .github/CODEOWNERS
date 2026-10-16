@@ -1,2 +1,12 @@
 # Use a separate release-bot identity for PR creation; the owner reviews.
 * @subhankar12-spec
+
+# Routine dev/staging release selections are validated and merged by Jenkins.
+# Empty owners override the catch-all only for these generated release inputs.
+/environments/dev/Chart.yaml
+/environments/dev/releases.yaml
+/environments/dev/charts/
+/environments/staging/Chart.yaml
+/environments/staging/releases.yaml
+/environments/staging/charts/
+# Production and configuration/code changes retain the catch-all human owner.
