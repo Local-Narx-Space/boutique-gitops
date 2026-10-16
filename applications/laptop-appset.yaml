@@ -12,11 +12,11 @@ spec:
       elements:
       - environment: dev
         autoSync: true
-      # Bootstrap only: enable after releases, namespace secrets and pull credentials are ready.
+      # Enabled after namespace secrets and release selection were prepared.
       - environment: staging
-        autoSync: false
+        autoSync: true
       - environment: production
-        autoSync: false
+        autoSync: true
   syncPolicy:
     applicationsSync: create-update
     preserveResourcesOnDeletion: true

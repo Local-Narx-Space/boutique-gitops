@@ -1,3 +1,8 @@
+> Current cluster state: all three environments now have autoSync=true after
+> release selection and namespace credentials were prepared. For a fresh cluster,
+> set unprepared environments to autoSync=false before applying the ApplicationSet.
+> Bootstrap instructions below describe that initial preparation phase.
+
 # Three environments on the existing laptop cluster
 
 These profiles use private, digest-selected GHCR releases and local PostgreSQL
