@@ -10,7 +10,7 @@ dependencies:
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-catalogue
   alias: catalogue
-  version: 0.1.0-bootstrap
+  version: 0.1.0-9913c5b038ea2ffbd612cec41300464054018a0d
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-cart
   alias: cart
