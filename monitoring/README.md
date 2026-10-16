@@ -97,3 +97,12 @@ and Loki plugins come from the pinned Grafana image. Upgrade that image through
 Git instead of modifying bundled plugin files on the read-only root filesystem.
 If an earlier startup update unloaded plugins, syncing this environment change
 recreates the Grafana pod and restores the bundled plugins from the image.
+
+## Kind API discovery egress
+
+The homelab profile records the current mega-local API backend as
+172.18.0.4:6443. Scoped egress policies allow only Prometheus and Alloy to reach
+that endpoint after Service destination translation. Existing TCP 443 Service
+access remains available. If recreating or moving the cluster, inspect the
+default/kubernetes EndpointSlice and update kubernetesApiEndpoint.cidr and port
+before syncing. Other profiles do not render this cluster-specific rule.

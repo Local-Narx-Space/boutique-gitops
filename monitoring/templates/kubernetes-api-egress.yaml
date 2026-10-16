@@ -1,0 +1,23 @@
+{{- if .Values.kubernetesApiEndpoint }}
+{{- range $collector := list (dict "namespace" "monitoring" "app" "prometheus") (dict "namespace" "monitoring-logs" "app" "alloy") }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: collector-kubernetes-api
+  namespace: {{ $collector.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ $collector.app }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: {{ $.Values.kubernetesApiEndpoint.cidr | quote }}
+    ports:
+    - protocol: TCP
+      port: {{ $.Values.kubernetesApiEndpoint.port }}
+{{- end }}
+{{- end }}

@@ -6,3 +6,7 @@ alloy:
 grafanaIngress:
   enabled: true
   host: grafana.narx.space
+# Current mega-local API backend; update if the kind cluster is recreated.
+kubernetesApiEndpoint:
+  cidr: 172.18.0.4/32
+  port: 6443
