@@ -6,17 +6,17 @@ version: 0.1.0
 dependencies:
 - name: boutique-frontend
   alias: frontend
-  version: 0.1.0-bootstrap
+  version: 0.1.0-0ce55ec3b8b6be47c31a5d915d4a633d86c04689
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-catalogue
   alias: catalogue
-  version: 0.1.0-bootstrap
+  version: 0.1.0-9913c5b038ea2ffbd612cec41300464054018a0d
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-cart
   alias: cart
-  version: 0.1.0-bootstrap
+  version: 0.1.0-619cbae91e44e48d5cfe454b3fe562d5da4d3091
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-orders
   alias: orders
-  version: 0.1.0-bootstrap
+  version: 0.1.0-6c7ad7231a7d5ae3d4a00021d24c053c38337301
   repository: oci://ghcr.io/subhankar12-spec/charts
