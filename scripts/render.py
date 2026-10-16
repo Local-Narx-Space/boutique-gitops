@@ -12,8 +12,7 @@ def value_files(environment, profile='cloud'):
     if profile=='lab':files.append(f'../../lab-profiles/{environment}/values.yaml')
     elif profile=='local':files.append(f'../../homelab/{environment}/values.yaml')
     elif profile=='laptop':
-        if environment != 'dev':raise ReleaseError('Laptop profile is dev-only')
-        files.append('../../laptop-profiles/dev/values.yaml')
+        files.append(f'../../laptop-profiles/{environment}/values.yaml')
     elif profile!='cloud':raise ReleaseError('Invalid Helm profile')
     return files
 

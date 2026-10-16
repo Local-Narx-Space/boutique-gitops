@@ -40,5 +40,7 @@ for chart in dependencies/homelab platform/external-secrets/monitoring; do
   helm lint --strict "$ROOT/$chart"
   helm template boutique-aux "$ROOT/$chart" | kubeconform -strict -summary -kubernetes-version 1.34.0 -skip ExternalSecret,SecretStore
 done
-python3 "$TOOLS/render.py" dev --root "$ROOT" --profile laptop --lint
-python3 "$TOOLS/render.py" dev --root "$ROOT" --profile laptop | kubeconform -strict -summary -kubernetes-version 1.34.0
+for environment in dev staging production; do
+  python3 "$TOOLS/render.py" "$environment" --root "$ROOT" --profile laptop --lint
+  python3 "$TOOLS/render.py" "$environment" --root "$ROOT" --profile laptop | kubeconform -strict -summary -kubernetes-version 1.34.0
+done

@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-production
+  namespace: argocd
+spec:
+  sourceRepos:
+  - https://github.com/subhankar12-spec/boutique-gitops.git
+  destinations:
+  - namespace: boutique-production
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-production
+  namespace: argocd
+spec:
+  project: boutique-production
+  source:
+    repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+    targetRevision: main
+    path: environments/production
+    helm:
+      releaseName: boutique-production
+      valueFiles:
+      - values.yaml
+      - releases.yaml
+      - ../../laptop-profiles/production/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: boutique-production
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
