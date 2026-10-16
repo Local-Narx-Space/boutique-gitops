@@ -67,6 +67,8 @@ frontend:
           volumeMounts:
           - mountPath: /tmp
             name: tmp
+        imagePullSecrets:
+        - name: ghcr-pull
 catalogue:
   replicaCount: 1
   pdb:
@@ -117,6 +119,8 @@ catalogue:
           volumeMounts:
           - mountPath: /tmp
             name: tmp
+        imagePullSecrets:
+        - name: ghcr-pull
 cart:
   replicaCount: 1
   pdb:
@@ -172,6 +176,8 @@ cart:
           volumeMounts:
           - mountPath: /tmp
             name: tmp
+        imagePullSecrets:
+        - name: ghcr-pull
 orders:
   replicaCount: 1
   pdb:
@@ -241,3 +247,5 @@ orders:
           volumeMounts:
           - mountPath: /tmp
             name: tmp
+        imagePullSecrets:
+        - name: ghcr-pull
