@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: boutique-laptop
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+  - missingkey=error
+  generators:
+  - list:
+      elements:
+      - environment: dev
+        autoSync: true
+      # Bootstrap only: enable after releases, namespace secrets and pull credentials are ready.
+      - environment: staging
+        autoSync: false
+      - environment: production
+        autoSync: false
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true
+  template:
+    metadata:
+      name: 'boutique-{{.environment}}'
+      namespace: argocd
+      labels:
+        app.kubernetes.io/part-of: boutique
+        boutique.environment: '{{.environment}}'
+    spec:
+      project: 'boutique-{{.environment}}'
+      source:
+        repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+        targetRevision: main
+        path: 'environments/{{.environment}}'
+        helm:
+          releaseName: 'boutique-{{.environment}}'
+          valueFiles:
+          - values.yaml
+          - releases.yaml
+          - '../../laptop-profiles/{{.environment}}/values.yaml'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'boutique-{{.environment}}'
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        retry:
+          limit: 3
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 1m
+  templatePatch: |
+    {{- if .autoSync }}
+    spec:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+    {{- end }}

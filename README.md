@@ -7,23 +7,28 @@ This keeps the package rendered by Argo in the reviewed tree; the OCI chart is
 also published for distribution.
 
 Jenkins opens PRs. The Jenkins `boutique-gitops-validate` job reports the
-**boutique/gitops-validation** check. Require it and independent review on main, protect
+**boutique/gitops-validation** check. Require it on main, protect production and
 configuration/tool changes with CODEOWNERS, and disallow protection bypass.
-There is no custom signature-policy job, automatic PR merge or signing key.
+With CI release automation activated, validated dev/staging bot release PRs
+merge automatically; production and rollback retain human review.
 
 ## Environment profiles
 
 | Profile | Purpose |
 | --- | --- |
 | `environments/ENV` | Cloud settings; requires provisioned managed data, secrets, TLS ingress and platform controllers |
-| `laptop-profiles/dev` | Existing Debian/kind dev with local PostgreSQL/Redis and GHCR digests; loopback port 8088 |
+| `laptop-profiles/ENV` | Existing Debian/kind environments with independent PostgreSQL/Redis, private GHCR digests and Cloudflare ingress |
 | `lab-profiles/ENV` | Optional TLS/policy-enforced two-cluster exercise |
 | `homelab/ENV` | Optional manual local-image exercise, not the registry CI/CD path |
 
-Use `applications/dev-laptop.yaml` only for existing-kind dev. It starts with
-manual sync, allowing inspection of the initial four-service baseline. The
-cloud and lab Applications require their own foundation. Production belongs on
-a separate cluster/account. Default kindnet does not enforce NetworkPolicy.
+Use `applications/laptop-projects.yaml` and `applications/laptop-appset.yaml`
+for the existing kind cluster. One ApplicationSet generates independent dev,
+staging and production Applications. Dev auto-syncs; staging/production start
+paused until their secrets and real release selections are ready. See
+[laptop bootstrap and migration](laptop-profiles/README.md). No root app is
+required. Cloud/lab definitions remain separate deployment alternatives.
+All laptop environments share one host; real production commonly uses separate
+clusters/accounts. NetworkPolicy enforcement depends on the installed CNI.
 
 Placeholder `bootstrap` tags are deliberately non-deployable. Publish each
 service and merge its initial dev PR before connecting/syncing the app.

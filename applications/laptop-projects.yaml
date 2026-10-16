@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-dev
+  namespace: argocd
+spec:
+  sourceRepos:
+  - https://github.com/subhankar12-spec/boutique-gitops.git
+  destinations:
+  - namespace: boutique-dev
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-staging
+  namespace: argocd
+spec:
+  sourceRepos:
+  - https://github.com/subhankar12-spec/boutique-gitops.git
+  destinations:
+  - namespace: boutique-staging
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-production
+  namespace: argocd
+spec:
+  sourceRepos:
+  - https://github.com/subhankar12-spec/boutique-gitops.git
+  destinations:
+  - namespace: boutique-production
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
