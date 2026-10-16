@@ -26,3 +26,7 @@ curl -I -H 'Host: boutique.narx.space' http://127.0.0.1
 To use localhost:8088 again, disable laptopIngress.enabled and restore
 PUBLIC_ORIGIN=http://localhost:8088 and COOKIE_SECURE=false in this profile,
 then sync. The configured public origin must match the browser's origin.
+
+The laptop Ingress also renders a NetworkPolicy permitting ingress-nginx
+controller pods in the ingress-nginx namespace to reach frontend TCP port 8080.
+The existing default-deny and backend policies remain in place.
