@@ -1,20 +1,20 @@
 frontend:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-frontend
-    digest: ''
-    tag: bootstrap
+    digest: sha256:f1d0555ffce8935d4982ac060114a5065980b168088b39b9b358dc0b3080ae57
+    tag: ''
 catalogue:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-catalogue
-    digest: ''
-    tag: bootstrap
+    digest: sha256:73050a717db4cfb241a73db1517141ff51e98c0d936b9a5ba8f924bd3cdf95d6
+    tag: ''
 cart:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-cart
-    digest: ''
-    tag: bootstrap
+    digest: sha256:234df8b78ab71e3f5a30e6a54fb584f84cd5ecc1b55803b35cff4d8b1408ffe6
+    tag: ''
 orders:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-orders
-    digest: ''
-    tag: bootstrap
+    digest: sha256:3bde220dca5dd78a5a95e0aed2c8a12594401bc7d497db0a1911ccbc5abb02b1
+    tag: ''
