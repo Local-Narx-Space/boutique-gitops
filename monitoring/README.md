@@ -89,3 +89,11 @@ then refresh and sync the monitoring Application. In the Debian-hosted Homelab
 Cloudflare tunnel add grafana.narx.space with service HTTP 127.0.0.1:80 and
 HTTP Host Header grafana.narx.space. Public TLS terminates at Cloudflare;
 cloudflared uses HTTP to local NGINX after the encrypted tunnel.
+
+## Grafana plugin updates
+
+Automatic plugin preinstallation and updates are disabled. Bundled Prometheus
+and Loki plugins come from the pinned Grafana image. Upgrade that image through
+Git instead of modifying bundled plugin files on the read-only root filesystem.
+If an earlier startup update unloaded plugins, syncing this environment change
+recreates the Grafana pod and restores the bundled plugins from the image.
