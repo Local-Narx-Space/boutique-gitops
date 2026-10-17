@@ -60,6 +60,28 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: kube-system
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: boutique-dev
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argo-rollouts
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: boutique-staging
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argo-rollouts
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: boutique-production
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argo-rollouts
+    ports:
+    - protocol: TCP
+      port: 8090
   ingress:
   - from:
     - namespaceSelector:

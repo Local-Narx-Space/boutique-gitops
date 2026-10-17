@@ -79,3 +79,7 @@ orders:
     enabled: false
 localDevelopment:
   enabled: false
+
+# Activate only after controller/verification prerequisites and reviewed migration.
+progressiveDelivery:
+  enabled: false

@@ -8,15 +8,19 @@ from pathlib import Path
 import yaml
 
 from render import render
+from progressive_policy import checked_application_resources
 from release_config import ROOT, ENVIRONMENTS, SERVICES, ReleaseError, selected_image
 
 
 def check_profile(root, profile, environment, helm="helm"):
     parent=profile.split('/')[0]
-    rendered=render(root,environment,'lab' if parent=='lab-profiles' else 'cloud',helm)
+    profile_name={'lab-profiles':'lab','laptop-profiles':'laptop','environments':'cloud'}[parent]
+    rendered=render(root,environment,profile_name,helm)
     resources=[item for item in yaml.safe_load_all(rendered) if item]
+    resources=checked_application_resources(root, environment, profile_name, resources, helm)
     allowed={'Namespace','NetworkPolicy','ResourceQuota','Deployment','Service','ServiceAccount','PodDisruptionBudget'}
     if parent=='lab-profiles':allowed.update({'Certificate','ConfigMap','Ingress','StatefulSet'})
+    if parent=='laptop-profiles':allowed.update({'Ingress','StatefulSet'})
     identities=[]
     for item in resources:
         kind=item.get('kind');metadata=item.get('metadata',{})
@@ -32,7 +36,7 @@ def check_profile(root, profile, environment, helm="helm"):
         'redis':'redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499',
     }
     statefulsets=[item for item in resources if item.get('kind')=='StatefulSet']
-    if parent=='lab-profiles' and {item['metadata']['name'] for item in statefulsets}!=set(data_images):
+    if parent in ('lab-profiles','laptop-profiles') and {item['metadata']['name'] for item in statefulsets}!=set(data_images):
         raise ReleaseError('Lab requires only its two approved data StatefulSets')
     for item in statefulsets:
         spec=item.get('spec',{}).get('template',{}).get('spec',{})
@@ -65,7 +69,7 @@ def main():
     try:
         checked = []
         for environment in ENVIRONMENTS:
-            for parent in ("environments", "lab-profiles"):
+            for parent in ("environments", "lab-profiles", "laptop-profiles"):
                 profile = f"{parent}/{environment}"
                 if (args.root / profile).is_dir():
                     checked.append(check_profile(args.root, profile, environment, args.helm))
