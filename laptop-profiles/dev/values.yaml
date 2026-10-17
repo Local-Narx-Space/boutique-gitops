@@ -1,5 +1,8 @@
 lab:
   enabled: false
+progressiveDelivery:
+  enabled: true
+  apiServerCIDR: 172.18.0.2/32
 localDevelopment:
   enabled: true
 frontend:

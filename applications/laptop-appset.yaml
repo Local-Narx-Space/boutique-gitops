@@ -12,7 +12,7 @@ spec:
       elements:
       - environment: dev
         autoSync: true
-        progressiveDelivery: false
+        progressiveDelivery: true
       # Enabled after namespace secrets and release selection were prepared.
       - environment: staging
         autoSync: true
