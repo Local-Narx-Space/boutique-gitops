@@ -109,7 +109,7 @@ catalogue:
   replicaCount: 1
 progressiveDelivery:
   enabled: true
-  apiServerCIDR: 172.18.0.2/32
+  apiServerCIDR: 172.18.0.0/16
 
 frontend:
   deployment:
