@@ -16,7 +16,7 @@ from render import render
 
 class RenderedValidationTests(unittest.TestCase):
     def test_saved_render_is_checked_without_rendering_application_again(self):
-        for profile, parent in [('cloud', 'environments'), ('lab', 'lab-profiles'),
+        for profile, parent in [('cloud', 'environments'),
                                 ('laptop', 'laptop-profiles')]:
             with self.subTest(profile=profile):
                 manifest = render(ROOT, 'dev', profile)

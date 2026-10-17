@@ -31,9 +31,6 @@ Embedded Prometheus and Alertmanager template expressions remain literal;
 the chart does not run them through Helm's `tpl` function. Kubernetes names,
 PVCs and namespaces are stable across the migration.
 
-For the production lab, add `../lab-profiles/monitoring/<cluster>/values.yaml`.
-It enables internal mock receivers and, for production, a local TLS queue
-PostgreSQL. The chart's single image selection applies to both cloud and lab.
 The default `base` profile preserves the older generic stack; deployment should
 explicitly select one of the three named profiles.
 
@@ -41,11 +38,7 @@ explicitly select one of the three named profiles.
 # From the GitOps repository root:
 python3 scripts/render-monitoring.py nonprod --lint
 python3 scripts/render-monitoring.py nonprod
-python3 scripts/render-monitoring.py production --lab
-# Direct Helm rendering of the equivalent production lab:
-helm template lab-monitoring-production monitoring --namespace monitoring \
-  -f monitoring/profiles/production/values.yaml \
-  -f lab-profiles/monitoring/production/values.yaml
+python3 scripts/render-monitoring.py homelab
 ```
 
 Argo CD points at `monitoring` and selects these same files. Its Application name
@@ -59,7 +52,7 @@ Use `incidentBridge.image.repository`, `.digest` and `.tag` in the reviewed
 profile values. Set the immutable SHA-256 digest from the trusted adapter
 release and clear `tag`; mutable release tags are rejected by the chart schema.
 The deliberate `replace-with-tested-digest` placeholder is allowed for rendering
-only. The production-lab deploy preflight rejects it.
+only. Select a tested image digest before enabling incident delivery.
 
 ```yaml
 incidentBridge:

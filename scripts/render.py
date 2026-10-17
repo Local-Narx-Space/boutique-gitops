@@ -9,9 +9,7 @@ from release_config import ROOT, ENVIRONMENTS, ReleaseError
 
 def value_files(environment, profile='cloud'):
     files=['values.yaml','releases.yaml']
-    if profile=='lab':files.append(f'../../lab-profiles/{environment}/values.yaml')
-    elif profile=='local':files.append(f'../../homelab/{environment}/values.yaml')
-    elif profile=='laptop':
+    if profile=='laptop':
         files.append(f'../../laptop-profiles/{environment}/values.yaml')
     elif profile!='cloud':raise ReleaseError('Invalid Helm profile')
     return files
@@ -28,7 +26,7 @@ def render(root, environment, profile='cloud', helm='helm', lint=False):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('environment',choices=ENVIRONMENTS);p.add_argument('--profile',choices=['cloud','lab','local','laptop'],default='cloud');p.add_argument('--root',type=Path,default=ROOT);p.add_argument('--helm',default='helm');p.add_argument('--lint',action='store_true');args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('environment',choices=ENVIRONMENTS);p.add_argument('--profile',choices=['cloud','laptop'],default='cloud');p.add_argument('--root',type=Path,default=ROOT);p.add_argument('--helm',default='helm');p.add_argument('--lint',action='store_true');args=p.parse_args()
     try:print(render(args.root,args.environment,args.profile,args.helm,args.lint),end='')
     except (ReleaseError,OSError,ValueError) as error:p.exit(1,'Helm render rejected: '+str(error)+'\n')
 
