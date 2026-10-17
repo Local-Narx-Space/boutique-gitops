@@ -6,7 +6,7 @@ version: 0.1.0
 dependencies:
 - name: boutique-frontend
   alias: frontend
-  version: 0.1.0-3af79a672d94d622bcbca5526479481dbd0e0ad1
+  version: 0.1.0-9198e3399d44733fef27e8461ed8102f932e4da1
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-catalogue
   alias: catalogue
