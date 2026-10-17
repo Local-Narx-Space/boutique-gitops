@@ -42,3 +42,23 @@ def selected_image(root, service, environment, commit=None):
         return image["repository"]+"@"+image["digest"]
     return image["repository"]+":"+image["tag"]
 
+
+def validation_environments(root, base=None):
+    """Scope clean release-only commits; everything else needs full validation."""
+    if not base:
+        return None
+    try:
+        if git(root, 'status', '--porcelain'):
+            return None
+        git(root, 'merge-base', '--is-ancestor', base, 'HEAD')
+        paths = [p for p in git(root, 'diff', '--name-only', '-z', '--no-renames', base, 'HEAD').split('\0') if p]
+    except ReleaseError:
+        return None
+    release_path = re.compile(
+        r'environments/(dev|staging|production)/(?:Chart\.yaml|releases\.yaml|'
+        r'charts/boutique-(?:frontend|catalogue|cart|orders)-0\.1\.0-[a-f0-9]{40}\.tgz)')
+    matches = [release_path.fullmatch(path) for path in paths]
+    if not matches or not all(matches):
+        return None
+    changed = {match.group(1) for match in matches}
+    return tuple(env for env in ENVIRONMENTS if env in changed)

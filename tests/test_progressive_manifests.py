@@ -18,8 +18,9 @@ def render(environment, enabled=False):
     command = ['helm', 'template', 'boutique-' + environment, str(folder), '-n', 'boutique-' + environment]
     for path in [folder / 'values.yaml', folder / 'releases.yaml', ROOT / 'laptop-profiles' / environment / 'values.yaml']:
         command += ['-f', str(path)]
+    command += ['--set', 'progressiveDelivery.enabled=' + str(enabled).lower()]
     if enabled:
-        command += ['--set', 'progressiveDelivery.enabled=true', '--set', 'progressiveDelivery.apiServerCIDR=172.18.0.2/32']
+        command += ['--set', 'progressiveDelivery.apiServerCIDR=172.18.0.2/32']
     return [item for item in yaml.safe_load_all(subprocess.check_output(command, text=True)) if item]
 
 
@@ -41,7 +42,7 @@ class ProgressiveManifests(unittest.TestCase):
                     with self.subTest(environment=environment, profile=profile):
                         check_profile(root, profile + '/' + environment, environment)
 
-    def test_disabled_by_default_in_every_environment(self):
+    def test_disabled_mode_keeps_four_native_deployments(self):
         for environment in ['dev', 'staging', 'production']:
             with self.subTest(environment=environment):
                 items = render(environment)

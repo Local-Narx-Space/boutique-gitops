@@ -12,10 +12,11 @@ from progressive_policy import checked_application_resources
 from release_config import ROOT, ENVIRONMENTS, SERVICES, ReleaseError, selected_image
 
 
-def check_profile(root, profile, environment, helm="helm"):
+def check_profile(root, profile, environment, helm="helm", *, rendered=None):
     parent=profile.split('/')[0]
     profile_name={'lab-profiles':'lab','laptop-profiles':'laptop','environments':'cloud'}[parent]
-    rendered=render(root,environment,profile_name,helm)
+    if rendered is None:
+        rendered=render(root,environment,profile_name,helm)
     resources=[item for item in yaml.safe_load_all(rendered) if item]
     resources=checked_application_resources(root, environment, profile_name, resources, helm)
     allowed={'Namespace','NetworkPolicy','ResourceQuota','Deployment','Service','ServiceAccount','PodDisruptionBudget'}
@@ -65,16 +66,28 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--helm", default="helm")
+    parser.add_argument("--rendered-file", type=Path, help="Validate manifests already rendered by the protected validator")
+    parser.add_argument("--environment", choices=ENVIRONMENTS)
+    parser.add_argument("--profile", choices=("cloud", "lab", "laptop"))
     args = parser.parse_args()
+    if any((args.rendered_file, args.environment, args.profile)) and not all((args.rendered_file, args.environment, args.profile)):
+        parser.error("--rendered-file, --environment and --profile must be supplied together")
     try:
         checked = []
+        if args.rendered_file:
+            parent = {"cloud": "environments", "lab": "lab-profiles", "laptop": "laptop-profiles"}[args.profile]
+            profile = f"{parent}/{args.environment}"
+            checked.append(check_profile(args.root, profile, args.environment, args.helm,
+                                         rendered=args.rendered_file.read_text()))
+            print(json.dumps({"checked_profiles": checked}))
+            return
         for environment in ENVIRONMENTS:
             for parent in ("environments", "lab-profiles", "laptop-profiles"):
                 profile = f"{parent}/{environment}"
                 if (args.root / profile).is_dir():
                     checked.append(check_profile(args.root, profile, environment, args.helm))
         print(json.dumps({"checked_profiles": checked}))
-    except (ReleaseError, OSError, KeyError, TypeError, ValueError) as error:
+    except (ReleaseError, OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as error:
         parser.exit(1, "Rendered image policy rejected: " + str(error) + "\n")
 
 
