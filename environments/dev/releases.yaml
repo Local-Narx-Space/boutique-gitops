@@ -18,3 +18,5 @@ orders:
     repository: ghcr.io/subhankar12-spec/boutique-orders
     digest: sha256:3bde220dca5dd78a5a95e0aed2c8a12594401bc7d497db0a1911ccbc5abb02b1
     tag: ''
+
+# Temporary Jenkins App integration probe; release selections unchanged.
