@@ -12,7 +12,7 @@ frontend:
         containers:
         - env:
           - name: PUBLIC_ORIGIN
-            value: https://boutique.narx.space
+            value: https://dev-boutique.narx.space
           - name: COOKIE_SECURE
             value: 'true'
           - name: CATALOGUE_URL
@@ -251,4 +251,4 @@ orders:
         - name: ghcr-pull
 laptopIngress:
   enabled: true
-  host: boutique.narx.space
+  host: dev-boutique.narx.space

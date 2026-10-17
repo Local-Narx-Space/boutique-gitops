@@ -208,7 +208,7 @@ scrape_configs:
     - https_ready
   static_configs:
   - targets:
-    - https://boutique.narx.space/health/ready
+    - https://dev-boutique.narx.space/health/ready
     labels:
       cluster: homelab
       environment: dev

@@ -10,7 +10,7 @@ and Redis. They do not use the homelab profiles' `:local` image overrides.
 
 | Environment | Namespace | Generated Application | Public hostname | App replicas |
 | --- | --- | --- | --- | --- |
-| dev | boutique-dev | `boutique-dev` | boutique.narx.space | 1 |
+| dev | boutique-dev | `boutique-dev` | dev-boutique.narx.space | 1 |
 | staging | boutique-staging | `boutique-staging` | staging-boutique.narx.space | 1 |
 | production | boutique-production | `boutique-production` | shop.narx.space | 2 |
 
