@@ -151,7 +151,7 @@
       "properties": {
         "cidr": {
           "type": "string",
-          "pattern": "^[0-9.]+/32$"
+          "pattern": "^(172\\.18\\.0\\.0/16|[0-9.]+/32)$"
         },
         "port": {
           "type": "integer",
