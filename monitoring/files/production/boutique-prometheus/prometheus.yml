@@ -125,3 +125,27 @@ scrape_configs:
     replacement: production
   - target_label: cluster
     replacement: production
+- job_name: argo-rollouts
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - boutique-production
+    selectors:
+    - role: pod
+      label: app.kubernetes.io/name=argo-rollouts
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_pod_container_port_name
+    regex: metrics
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_namespace
+    regex: boutique-(.*)
+    target_label: environment
+    replacement: $1
+  - source_labels:
+    - __meta_kubernetes_pod_name
+    target_label: pod
+  - target_label: service
+    replacement: frontend-rollouts

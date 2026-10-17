@@ -185,3 +185,27 @@ groups:
     annotations:
       summary: No incident bridge scrape targets are present
       runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
+- name: progressive-delivery
+  rules:
+  - alert: BoutiqueReleaseAborted
+    expr: rollout_info{job="argo-rollouts",namespace=~"boutique-(dev|staging|production)",phase="Degraded"}
+      == 1
+    for: 30s
+    labels:
+      severity: warning
+      service: frontend
+    annotations:
+      summary: Frontend release aborted in {{ $labels.environment }}; inspect stable
+        traffic and failed analysis
+      runbook_url: https://github.com/subhankar12-spec/boutique-gitops/blob/main/docs/progressive-delivery.md#failed-release
+  - alert: BoutiqueRolloutControllerUnavailable
+    expr: kube_deployment_status_replicas_available{deployment="argo-rollouts",namespace=~"boutique-(dev|staging|production)"}
+      < 1
+    for: 1m
+    labels:
+      severity: critical
+      service: frontend-rollouts
+    annotations:
+      summary: Progressive delivery controller unavailable in {{ $labels.namespace
+        }}
+      runbook_url: https://github.com/subhankar12-spec/boutique-gitops/blob/main/docs/progressive-delivery.md#controller-unavailable
