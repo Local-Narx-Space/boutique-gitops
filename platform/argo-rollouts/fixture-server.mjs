@@ -9,10 +9,10 @@ http.createServer(async (request, response) => {
   const reply = (status, body) => {response.writeHead(status, {'Content-Type': 'application/json'}); response.end(JSON.stringify(body));};
   if (path === '/version') return reply(200, {version: process.env.VERSION});
   if (process.env.SERVICE && process.env.FAIL_POST && request.headers['x-fixture-phase'] === 'serving') postSwitchFailure = true;
-  if (path.startsWith('/health/')) return reply(path.endsWith('/ready') && (process.env.READY === 'false' || (process.env.SERVICE && postSwitchFailure)) ? 503 : 200, {status: 'ok'});
+  if (path.startsWith('/health/')) return reply(path.endsWith('/ready') && process.env.READY === 'false' ? 503 : 200, {status: 'ok'});
   // Direct backend API fixtures live only in the disposable test namespace.
   if (process.env.SERVICE) {
-    if (process.env.FAIL_AFTER) return reply(503, {});
+    if (process.env.FAIL_AFTER || postSwitchFailure) return reply(503, {});
     const sessionId = request.headers['x-session-id'] || path.split('/')[2];
     if (!sessions.has(sessionId)) sessions.set(sessionId, {items: [], keys: new Map()});
     const state = sessions.get(sessionId);
