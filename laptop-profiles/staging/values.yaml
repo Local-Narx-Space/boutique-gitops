@@ -110,7 +110,7 @@ catalogue:
 progressiveDelivery:
   enabled: true
   backendsEnabled: true
-  apiServerCIDR: 172.18.0.2/32
+  apiServerCIDR: 172.18.0.3/32
 frontend:
   deployment:
     template:
