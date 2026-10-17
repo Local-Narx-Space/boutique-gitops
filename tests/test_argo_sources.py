@@ -20,9 +20,14 @@ class ArgoSourceTests(unittest.TestCase):
 
     def test_all_active_environment_profiles(self):
         for environment in ('dev', 'staging', 'production'):
-            for profile in ('cloud', 'lab', 'laptop'):
+            for profile in ('cloud', 'laptop'):
                 with self.subTest(environment=environment, profile=profile):
                     approved_argo_source(self.source(environment, profile), environment)
+
+    def test_removed_profiles_are_rejected(self):
+        for profile in ('lab', 'local'):
+            with self.subTest(profile=profile), self.assertRaises(ReleaseError):
+                value_files('dev', profile)
 
     def test_rejects_inline_overrides_and_unapproved_files(self):
         for environment in ('dev', 'staging', 'production'):

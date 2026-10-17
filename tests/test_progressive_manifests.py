@@ -31,14 +31,13 @@ class ProgressiveManifests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             shutil.copytree(ROOT / 'environments', root / 'environments')
-            for profile in ['lab-profiles', 'laptop-profiles']:
-                shutil.copytree(ROOT / profile, root / profile)
+            shutil.copytree(ROOT / 'laptop-profiles', root / 'laptop-profiles')
             for environment in ['dev', 'staging', 'production']:
                 path = root / 'environments' / environment / 'values.yaml'
                 values = yaml.safe_load(path.read_text())
                 values['progressiveDelivery'] = {'enabled': True, 'apiServerCIDR': '172.18.0.2/32'}
                 path.write_text(yaml.safe_dump(values))
-                for profile in ['environments', 'lab-profiles', 'laptop-profiles']:
+                for profile in ['environments', 'laptop-profiles']:
                     with self.subTest(environment=environment, profile=profile):
                         check_profile(root, profile + '/' + environment, environment)
 

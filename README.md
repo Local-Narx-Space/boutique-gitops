@@ -18,8 +18,6 @@ merge automatically; production and rollback retain human review.
 | --- | --- |
 | `environments/ENV` | Cloud settings; requires provisioned managed data, secrets, TLS ingress and platform controllers |
 | `laptop-profiles/ENV` | Existing Debian/kind environments with independent PostgreSQL/Redis, private GHCR digests and Cloudflare ingress |
-| `lab-profiles/ENV` | Optional TLS/policy-enforced two-cluster exercise |
-| `homelab/ENV` | Optional manual local-image exercise, not the registry CI/CD path |
 
 Use `applications/laptop-projects.yaml` and `applications/laptop-appset.yaml`
 for the existing kind cluster. One ApplicationSet generates independent dev,
@@ -59,11 +57,11 @@ environment. Their databases are managed by the corresponding Argo CD applicatio
 
 Validation has one entry point: `./scripts/validate.sh`. It renders each application
 environment/profile once and shares that manifest between Kubernetes schema and
-image/rollout policy checks. Cloud, lab, laptop, monitoring and auxiliary chart
+image/rollout policy checks. Cloud, laptop, monitoring and auxiliary chart
 checks remain enabled in the default full run. Jenkins can supply its protected
 base revision as a second argument: `./scripts/validate.sh /path/to/candidate origin/main`.
 Clean commits changing only environment release selections/chart packages validate
-all three profiles for the affected environments. Changes to shared files,
+both profiles for the affected environments. Changes to shared files,
 monitoring, templates or scripts, an unavailable/non-ancestor base, or a dirty
 checkout fall back to full validation. Temporary manifests and schema caches are private to the
 validation run and removed afterward.

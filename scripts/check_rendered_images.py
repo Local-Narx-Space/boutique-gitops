@@ -14,13 +14,12 @@ from release_config import ROOT, ENVIRONMENTS, SERVICES, ReleaseError, selected_
 
 def check_profile(root, profile, environment, helm="helm", *, rendered=None):
     parent=profile.split('/')[0]
-    profile_name={'lab-profiles':'lab','laptop-profiles':'laptop','environments':'cloud'}[parent]
+    profile_name={'laptop-profiles':'laptop','environments':'cloud'}[parent]
     if rendered is None:
         rendered=render(root,environment,profile_name,helm)
     resources=[item for item in yaml.safe_load_all(rendered) if item]
     resources=checked_application_resources(root, environment, profile_name, resources, helm)
     allowed={'Namespace','NetworkPolicy','ResourceQuota','Deployment','Service','ServiceAccount','PodDisruptionBudget'}
-    if parent=='lab-profiles':allowed.update({'Certificate','ConfigMap','Ingress','StatefulSet'})
     if parent=='laptop-profiles':allowed.update({'Ingress','StatefulSet'})
     identities=[]
     for item in resources:
@@ -37,13 +36,13 @@ def check_profile(root, profile, environment, helm="helm", *, rendered=None):
         'redis':'redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499',
     }
     statefulsets=[item for item in resources if item.get('kind')=='StatefulSet']
-    if parent in ('lab-profiles','laptop-profiles') and {item['metadata']['name'] for item in statefulsets}!=set(data_images):
-        raise ReleaseError('Lab requires only its two approved data StatefulSets')
+    if parent == 'laptop-profiles' and {item['metadata']['name'] for item in statefulsets}!=set(data_images):
+        raise ReleaseError('Laptop profile requires only its two approved data StatefulSets')
     for item in statefulsets:
         spec=item.get('spec',{}).get('template',{}).get('spec',{})
         name=item['metadata']['name'];containers=spec.get('containers',[])
         if name not in data_images or len(containers)!=1 or containers[0].get('name')!=name or containers[0].get('image')!=data_images[name] or spec.get('initContainers') or spec.get('ephemeralContainers'):
-            raise ReleaseError('Unapproved lab data image or sidecar')
+            raise ReleaseError('Unapproved laptop data image or sidecar')
     deployments=[item for item in resources if item.get('kind')=='Deployment']
     names = [item.get("metadata", {}).get("name") for item in deployments]
     if len(names) != len(SERVICES) or set(names) != set(SERVICES):
@@ -68,21 +67,21 @@ def main():
     parser.add_argument("--helm", default="helm")
     parser.add_argument("--rendered-file", type=Path, help="Validate manifests already rendered by the protected validator")
     parser.add_argument("--environment", choices=ENVIRONMENTS)
-    parser.add_argument("--profile", choices=("cloud", "lab", "laptop"))
+    parser.add_argument("--profile", choices=("cloud", "laptop"))
     args = parser.parse_args()
     if any((args.rendered_file, args.environment, args.profile)) and not all((args.rendered_file, args.environment, args.profile)):
         parser.error("--rendered-file, --environment and --profile must be supplied together")
     try:
         checked = []
         if args.rendered_file:
-            parent = {"cloud": "environments", "lab": "lab-profiles", "laptop": "laptop-profiles"}[args.profile]
+            parent = {"cloud": "environments", "laptop": "laptop-profiles"}[args.profile]
             profile = f"{parent}/{args.environment}"
             checked.append(check_profile(args.root, profile, args.environment, args.helm,
                                          rendered=args.rendered_file.read_text()))
             print(json.dumps({"checked_profiles": checked}))
             return
         for environment in ENVIRONMENTS:
-            for parent in ("environments", "lab-profiles", "laptop-profiles"):
+            for parent in ("environments", "laptop-profiles"):
                 profile = f"{parent}/{environment}"
                 if (args.root / profile).is_dir():
                     checked.append(check_profile(args.root, profile, environment, args.helm))

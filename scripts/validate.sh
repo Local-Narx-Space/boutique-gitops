@@ -12,7 +12,7 @@ root=Path(sys.argv[1])
 sys.path.insert(0, sys.argv[2])
 from helm_release import selected_chart
 from release_config import ENVIRONMENTS, SERVICES, validation_environments
-for folder in ('environments','lab-profiles','laptop-profiles','monitoring','platform'):
+for folder in ('environments','laptop-profiles','monitoring','platform'):
     for path in (root/folder).rglob('*'):
         if path.is_symlink(): raise SystemExit('Symlinks are not allowed in Helm/configuration inputs')
 for environment in ENVIRONMENTS:
@@ -39,7 +39,7 @@ SCHEMA_ARGS=(-cache "$PRIVATE_VALIDATION/schemas"
   -schema-location "$PRIVATE_VALIDATION/rollouts/{{ .ResourceKind }}_{{ .ResourceAPIVersion }}.json"
   -schema-location default -strict -summary -kubernetes-version 1.34.0)
 for environment in "${environments[@]}"; do
-  for profile in cloud lab laptop; do
+  for profile in cloud laptop; do
     manifest="$PRIVATE_VALIDATION/$environment-$profile.yaml"
     python3 "$TOOLS/render.py" "$environment" --root "$ROOT" --profile "$profile" --lint
     python3 "$TOOLS/render.py" "$environment" --root "$ROOT" --profile "$profile" > "$manifest"
@@ -54,10 +54,6 @@ if [ "$VALIDATION_SCOPE" != full ]; then exit 0; fi
 for profile in homelab nonprod production; do
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lint
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" | kubeconform "${SCHEMA_ARGS[@]}"
-done
-for profile in nonprod production; do
-  python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lab --lint
-  python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lab | kubeconform "${SCHEMA_ARGS[@]}" -skip Certificate
 done
 helm lint --strict "$ROOT/platform/external-secrets/monitoring"
 helm template boutique-aux "$ROOT/platform/external-secrets/monitoring" | kubeconform "${SCHEMA_ARGS[@]}" -skip ExternalSecret,SecretStore
