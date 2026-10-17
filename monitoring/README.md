@@ -15,8 +15,7 @@ it merely to get the app or standard monitoring running.
 This dependency-free chart owns Prometheus, Grafana, Alertmanager, Loki, Alloy,
 incident delivery, persistence, network policy and namespace-scoped discovery.
 It preserves the existing affordable monitoring stack; chart packaging does not
-make its single-replica components highly available. The separate HA Operator
-reference remains in `production-reference/` and has not been deployed.
+make its single-replica components highly available.
 
 ## Select a deployment profile
 

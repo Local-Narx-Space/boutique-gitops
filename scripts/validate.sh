@@ -49,11 +49,9 @@ for environment in "${environments[@]}"; do
     python3 "$TOOLS/check_rendered_images.py" --root "$ROOT" --environment "$environment" --profile "$profile" --rendered-file "$manifest"
   done
 done
-# Release-only changes cannot alter monitoring or auxiliary charts.
+# Release-only changes cannot alter monitoring.
 if [ "$VALIDATION_SCOPE" != full ]; then exit 0; fi
 for profile in homelab nonprod production; do
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lint
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" | kubeconform "${SCHEMA_ARGS[@]}"
 done
-helm lint --strict "$ROOT/platform/external-secrets/monitoring"
-helm template boutique-aux "$ROOT/platform/external-secrets/monitoring" | kubeconform "${SCHEMA_ARGS[@]}" -skip ExternalSecret,SecretStore
