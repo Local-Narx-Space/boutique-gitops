@@ -252,8 +252,5 @@ orders:
 laptopIngress:
   enabled: true
   host: dev-boutique.narx.space
-
-# Initial migration keeps the already verified release selection unchanged.
 progressiveDelivery:
-  enabled: true
-  apiServerCIDR: 172.18.0.2/32
+  enabled: false
