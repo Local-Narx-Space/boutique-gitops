@@ -110,5 +110,5 @@ def approved_argo_source(source, environment):
     if set(source)!={'repoURL','targetRevision','path','helm'}:
         raise ReleaseError('Unapproved Argo source overrides')
     helm=source.get('helm')
-    if not isinstance(helm,dict) or set(helm)!={'releaseName','valueFiles'} or helm['releaseName']!='boutique-'+environment or helm['valueFiles'] not in ([value_files(environment,'cloud'),value_files(environment,'lab')] + ([value_files(environment,'laptop')] if environment == 'dev' else [])):
+    if not isinstance(helm,dict) or set(helm)!={'releaseName','valueFiles'} or helm['releaseName']!='boutique-'+environment or helm['valueFiles'] not in [value_files(environment, profile) for profile in ('cloud', 'lab', 'laptop')]:
         raise ReleaseError('Argo must use approved Helm values without inline overrides')
