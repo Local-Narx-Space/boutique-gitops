@@ -12,14 +12,14 @@ spec:
       elements:
       - environment: dev
         autoSync: true
-        progressiveDelivery: true
+        progressiveDelivery: false
       # Enabled after namespace secrets and release selection were prepared.
       - environment: staging
         autoSync: true
         progressiveDelivery: true
       - environment: production
         autoSync: true
-        progressiveDelivery: false
+        progressiveDelivery: true
   syncPolicy:
     applicationsSync: create-update
     preserveResourcesOnDeletion: true
@@ -71,19 +71,21 @@ spec:
       # Only these fields belong to the namespace-scoped Rollouts controller.
       # Image, pod template, analysis policy and all other fields stay Git-owned.
       ignoreDifferences:
+      {{- range $service := list "frontend" "catalogue" "cart" "orders" }}
       - group: apps
         kind: Deployment
-        name: frontend
+        name: {{ $service }}
         jsonPointers:
         - /spec/replicas
       - group: ""
         kind: Service
-        name: frontend
+        name: {{ $service }}
         jsonPointers:
         - /spec/selector/rollouts-pod-template-hash
       - group: ""
         kind: Service
-        name: frontend-preview
+        name: {{ $service }}-preview
         jsonPointers:
         - /spec/selector/rollouts-pod-template-hash
+      {{- end }}
       {{- end }}

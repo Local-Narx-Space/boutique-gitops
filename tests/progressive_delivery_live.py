@@ -59,8 +59,9 @@ def main():
     parser.add_argument('--service', choices=['frontend','catalogue','cart','orders'], default='frontend')
     parser.add_argument('--evidence', type=Path, required=True)
     args = parser.parse_args()
-    global SERVICE, PORT
+    global SERVICE, PORT, NAMESPACE
     SERVICE = args.service
+    NAMESPACE = 'boutique-rollouts-check-' + SERVICE
     PORT = {'frontend':8080, 'catalogue':8081, 'cart':8082, 'orders':8083}[SERVICE]
     args.evidence.mkdir(parents=True, exist_ok=True)
     # Render the actual optional templates; only shorten analysis windows for
@@ -79,6 +80,9 @@ def main():
                 or item['kind']=='Service' and item['metadata']['name'] in [SERVICE,SERVICE+'-preview']]
     for item in selected:
         item['metadata']['namespace'] = NAMESPACE
+        if item['kind'] == 'ConfigMap':
+            # Only widen the probe's host assertion to this fixed isolated namespace.
+            item['data'] = {key: value.replace('rollouts-check', 'rollouts-check-' + SERVICE) for key, value in item['data'].items()}
         if item['kind'] == 'AnalysisTemplate':
             for metric in item['spec']['metrics']:
                 metric['interval'] = '2s'

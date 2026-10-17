@@ -252,3 +252,7 @@ orders:
   pdb:
     enabled: true
   replicaCount: 2
+progressiveDelivery:
+  enabled: true
+  backendsEnabled: true
+  apiServerCIDR: 172.18.0.2/32
