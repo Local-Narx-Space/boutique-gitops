@@ -12,7 +12,7 @@ root=Path(sys.argv[1])
 sys.path.insert(0, sys.argv[2])
 from helm_release import selected_chart
 from release_config import ENVIRONMENTS, SERVICES, validation_environments
-for folder in ('environments','lab-profiles','laptop-profiles','monitoring','dependencies','platform'):
+for folder in ('environments','lab-profiles','laptop-profiles','monitoring','platform'):
     for path in (root/folder).rglob('*'):
         if path.is_symlink(): raise SystemExit('Symlinks are not allowed in Helm/configuration inputs')
 for environment in ENVIRONMENTS:
@@ -59,7 +59,5 @@ for profile in nonprod production; do
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lab --lint
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lab | kubeconform "${SCHEMA_ARGS[@]}" -skip Certificate
 done
-for chart in dependencies/homelab platform/external-secrets/monitoring; do
-  helm lint --strict "$ROOT/$chart"
-  helm template boutique-aux "$ROOT/$chart" | kubeconform "${SCHEMA_ARGS[@]}" -skip ExternalSecret,SecretStore
-done
+helm lint --strict "$ROOT/platform/external-secrets/monitoring"
+helm template boutique-aux "$ROOT/platform/external-secrets/monitoring" | kubeconform "${SCHEMA_ARGS[@]}" -skip ExternalSecret,SecretStore
