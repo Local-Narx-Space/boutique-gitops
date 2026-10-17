@@ -5,8 +5,9 @@ metadata:
   namespace: boutique-staging
 spec:
   hard:
-    limits.cpu: '16'
+    # Allow stable, retained and candidate replicas plus analysis Jobs.
+    limits.cpu: {{ if (.Values.progressiveDelivery | default dict).enabled }}'32'{{ else }}'16'{{ end }}
     limits.memory: 16Gi
-    pods: '30'
+    pods: {{ if (.Values.progressiveDelivery | default dict).enabled }}'40'{{ else }}'30'{{ end }}
     requests.cpu: '8'
     requests.memory: 8Gi
