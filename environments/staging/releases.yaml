@@ -1,7 +1,7 @@
 frontend:
   image:
     repository: ghcr.io/subhankar12-spec/boutique-frontend
-    digest: sha256:719736fb72cf4aac5131630374ab44fcd1aa7a365250bfbf40caacda4cca25aa
+    digest: sha256:06d5ba59ab56b02ae9cb32876ae219157ddd5723c5bc49eda6fb433047d631e0
     tag: ''
 catalogue:
   image:
