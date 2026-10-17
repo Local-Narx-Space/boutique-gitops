@@ -13,12 +13,13 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def render(environment, enabled=False):
+def render(environment, enabled=False, backends=False):
     folder = ROOT / 'environments' / environment
     command = ['helm', 'template', 'boutique-' + environment, str(folder), '-n', 'boutique-' + environment]
     for path in [folder / 'values.yaml', folder / 'releases.yaml', ROOT / 'laptop-profiles' / environment / 'values.yaml']:
         command += ['-f', str(path)]
     command += ['--set', 'progressiveDelivery.enabled=' + str(enabled).lower()]
+    command += ['--set', 'progressiveDelivery.backendsEnabled=' + str(backends).lower()]
     if enabled:
         command += ['--set', 'progressiveDelivery.apiServerCIDR=172.18.0.2/32']
     return [item for item in yaml.safe_load_all(subprocess.check_output(command, text=True)) if item]
@@ -40,6 +41,32 @@ class ProgressiveManifests(unittest.TestCase):
                 for profile in ['environments', 'laptop-profiles']:
                     with self.subTest(environment=environment, profile=profile):
                         check_profile(root, profile + '/' + environment, environment)
+
+    def test_all_service_rollbacks_render_and_enforce_protected_policy(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from progressive_policy import checked_application_resources
+        from release_config import ReleaseError
+        for environment in ['staging', 'production']:
+            items = render(environment, True, True)
+            with tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory) / ('environments/' + environment)
+                folder.mkdir(parents=True)
+                (folder/'values.yaml').write_text('progressiveDelivery: {enabled: true, backendsEnabled: true, apiServerCIDR: 172.18.0.2/32}')
+                with patch('progressive_policy.value_files', return_value=['values.yaml']):
+                    checked_application_resources(directory, environment, 'laptop', items)
+                    rollouts = [x for x in items if x['kind']=='Rollout']
+                    self.assertEqual({x['metadata']['name'] for x in rollouts}, {'frontend','catalogue','cart','orders'})
+                    self.assertEqual(sum(x['kind']=='AnalysisTemplate' for x in items), 8)
+                    for rollout in rollouts:
+                        self.assertTrue(rollout['spec']['progressDeadlineAbort'])
+                    changed = copy.deepcopy(items)
+                    next(x for x in changed if x['kind']=='Rollout' and x['metadata']['name']=='orders')['spec']['strategy']['blueGreen'].pop('postPromotionAnalysis')
+                    with self.assertRaises(ReleaseError):
+                        checked_application_resources(directory, environment, 'laptop', changed)
+                    changed = copy.deepcopy(items)
+                    next(x for x in changed if x['kind']=='ConfigMap' and x['metadata']['name']=='frontend-rollout-analysis')['data']['backend-check.mjs']='process.exit(0)'
+                    with self.assertRaises(ReleaseError):
+                        checked_application_resources(directory, environment, 'laptop', changed)
 
     def test_disabled_mode_keeps_four_native_deployments(self):
         for environment in ['dev', 'staging', 'production']:
@@ -104,7 +131,7 @@ class ProgressiveManifests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='boutique-rollout-schemas-') as directory:
             subprocess.run(['python3', str(ROOT / 'platform/argo-rollouts/make-schemas.py'), directory], check=True)
             binary = os.environ.get('KUBECONFORM', 'kubeconform')
-            resources = [item for item in render('staging', True) if item['kind'] in ['Rollout', 'AnalysisTemplate']]
+            resources = [item for item in render('staging', True, True) if item['kind'] in ['Rollout', 'AnalysisTemplate']]
 
             def validate(items):
                 return subprocess.run([binary, '-strict', '-summary', '-schema-location', directory + '/{{ .ResourceKind }}_{{ .ResourceAPIVersion }}.json'],
