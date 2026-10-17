@@ -45,8 +45,7 @@ python3 scripts/render.py dev --profile laptop --lint
 python3 scripts/render.py dev --profile laptop
 ```
 
-See [Helm delivery](docs/helm-delivery.md) and
-[the deployment guide](https://github.com/subhankar12-spec/boutique-platform/blob/main/docs/deploy-cicd-kind.md).
+See [the deployment guide](https://github.com/subhankar12-spec/boutique-platform/blob/main/docs/deploy-cicd-kind.md).
 Never commit credentials. AWS uses scoped ESO/IRSA; laptop secrets are generated
 in Kubernetes by the platform secret helper and preserved on reruns.
 
