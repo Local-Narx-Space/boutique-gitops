@@ -101,9 +101,9 @@ recreates the Grafana pod and restores the bundled plugins from the image.
 ## Kind API discovery egress
 
 The homelab profile records the current mega-local API backend as
-172.18.0.4:6443. Scoped egress policies allow only Prometheus and Alloy to reach
+172.18.0.2:6443. Scoped egress policies allow only Prometheus and Alloy to reach
 that endpoint after Service destination translation. Existing TCP 443 Service
-access remains available. If recreating or moving the cluster, inspect the
+access remains available. If restarting, recreating or moving Docker/kind changes node IPs, inspect the
 default/kubernetes EndpointSlice and update kubernetesApiEndpoint.cidr and port
 before syncing. Other profiles do not render this cluster-specific rule.
 

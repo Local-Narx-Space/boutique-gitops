@@ -9,7 +9,7 @@ grafanaIngress:
   enabled: true
   host: grafana.narx.space
 kubernetesApiEndpoint:
-  cidr: 172.18.0.4/32
+  cidr: 172.18.0.2/32
   port: 6443
 kubernetesMetrics:
   enabled: true
