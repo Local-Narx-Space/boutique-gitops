@@ -108,6 +108,13 @@ spec:
       port: 53
     - protocol: TCP
       port: 53
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: orders
+    ports:
+    - protocol: TCP
+      port: 8083
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -190,6 +197,13 @@ spec:
     ports:
     - protocol: TCP
       port: 8083
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: catalogue
+    ports:
+    - protocol: TCP
+      port: 8083
   egress:
   - to:
     - namespaceSelector:
@@ -227,3 +241,15 @@ spec:
     ports:
     - protocol: TCP
       port: 5432
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 127.0.0.0/8
+        - 169.254.0.0/16
+    ports:
+    - protocol: TCP
+      port: 443
