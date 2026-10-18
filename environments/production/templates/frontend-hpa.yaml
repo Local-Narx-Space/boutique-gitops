@@ -1,0 +1,35 @@
+{{- $hpa := .Values.frontendAutoscaling | default dict -}}
+{{- if $hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ if .Values.progressiveDelivery.enabled }}argoproj.io/v1alpha1{{ else }}apps/v1{{ end }}
+    kind: {{ if .Values.progressiveDelivery.enabled }}Rollout{{ else }}Deployment{{ end }}
+    name: frontend
+  minReplicas: {{ $hpa.minReplicas }}
+  maxReplicas: {{ $hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ $hpa.targetCPUUtilizationPercentage }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+{{- end }}

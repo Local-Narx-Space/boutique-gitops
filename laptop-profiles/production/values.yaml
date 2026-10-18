@@ -255,5 +255,6 @@ orders:
 progressiveDelivery:
   enabled: true
   backendsEnabled: true
-  # kind node addresses change on reboot; only API TCP/6443 is allowed.
   apiServerCIDR: 172.18.0.0/16
+frontendAutoscaling:
+  enabled: true

@@ -55,3 +55,10 @@ for profile in homelab nonprod production; do
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" --lint
   python3 "$TOOLS/render-monitoring.py" "$profile" --root "$ROOT" | kubeconform "${SCHEMA_ARGS[@]}"
 done
+
+# Resource metrics are an HPA prerequisite and use their own scoped platform chart.
+helm lint --strict "$ROOT/platform/metrics-server"
+for profile in values.yaml values-laptop.yaml; do
+  helm template boutique-metrics-server "$ROOT/platform/metrics-server" -n kube-system \
+    -f "$ROOT/platform/metrics-server/$profile" | kubeconform "${SCHEMA_ARGS[@]}"
+done

@@ -65,3 +65,14 @@ both profiles for the affected environments. Changes to shared files,
 monitoring, templates or scripts, an unavailable/non-ancestor base, or a dirty
 checkout fall back to full validation. Temporary manifests and schema caches are private to the
 validation run and removed afterward.
+
+
+Frontend autoscaling is enabled only in the active QA/production laptop profiles:
+2–3 replicas, CPU target 60% of each Pod's 100m CPU request, with a 300-second
+scale-down stabilization window. The HPA targets the frontend Rollout; Argo CD
+ignores only that Rollout's replica field so it does not undo scaling. Dev and
+backends keep fixed replica counts. Install the Git-managed Metrics Server
+prerequisite through `applications/metrics-server.yaml` on the local cluster.
+`kubectl -n boutique-staging get hpa` and `kubectl top pods` show scaling and usage.
+The 3-replica limit applies to the HPA's desired frontend count; blue-green
+releases can temporarily have both active and preview replicas.

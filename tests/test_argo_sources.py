@@ -31,7 +31,7 @@ class ArgoSourceTests(unittest.TestCase):
         root=Path(__file__).resolve().parents[1]
         appset=yaml.safe_load((root/'applications/laptop-appset.yaml').read_text())
         # Helm executes the same Go text/template + Sprig loop used by ApplicationSet.
-        patch=appset['spec']['templatePatch'].replace('.progressiveDelivery','.Values.progressiveDelivery').replace('.autoSync','.Values.autoSync')
+        patch=appset['spec']['templatePatch'].replace('.progressiveDelivery','.Values.progressiveDelivery').replace('.autoSync','.Values.autoSync').replace('.frontendAutoscaling','.Values.frontendAutoscaling')
         with tempfile.TemporaryDirectory() as folder:
             chart=Path(folder);(chart/'templates').mkdir()
             (chart/'Chart.yaml').write_text('apiVersion: v2\nname: appset-patch-check\nversion: 1.0.0\n')
@@ -46,9 +46,10 @@ class ArgoSourceTests(unittest.TestCase):
                 (chart/'values.yaml').write_text(yaml.safe_dump(element))
                 rendered=yaml.safe_load(subprocess.check_output(['helm','template','patch',str(chart)],text=True))
                 ignore=rendered['spec'].get('ignoreDifferences',[])
-                self.assertEqual(len(ignore),12 if enabled else 0)
+                self.assertEqual(len(ignore),13 if enabled else 0)
+                self.assertEqual([r['name'] for r in ignore if r['kind']=='Rollout'], ['frontend'] if enabled else [])
                 for rule in ignore:
-                    self.assertEqual(rule['jsonPointers'],['/spec/replicas'] if rule['kind']=='Deployment' else ['/spec/selector/rollouts-pod-template-hash'])
+                    self.assertEqual(rule['jsonPointers'],['/spec/replicas'] if rule['kind'] in ('Deployment','Rollout') else ['/spec/selector/rollouts-pod-template-hash'])
 
     def test_removed_profiles_are_rejected(self):
         for profile in ('lab', 'local'):
