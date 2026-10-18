@@ -68,6 +68,23 @@ class ProgressiveManifests(unittest.TestCase):
                     with self.assertRaises(ReleaseError):
                         checked_application_resources(directory, environment, 'laptop', changed)
 
+    def test_only_laptop_profiles_allow_the_kind_api_network(self):
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from progressive_policy import checked_application_resources
+        from release_config import ReleaseError
+        items=render('staging',True,True)
+        next(x for x in items if x['kind']=='NetworkPolicy' and x['metadata']['name']=='progressive-controller')['spec']['egress'][-1]['to'][0]['ipBlock']['cidr']='172.18.0.0/16'
+        with tempfile.TemporaryDirectory() as directory:
+            folder=Path(directory)/'environments/staging';folder.mkdir(parents=True)
+            path=folder/'values.yaml'
+            path.write_text('progressiveDelivery: {enabled: true, backendsEnabled: true, apiServerCIDR: 172.18.0.0/16}')
+            with patch('progressive_policy.value_files',return_value=['values.yaml']):
+                checked_application_resources(directory,'staging','laptop',items)
+                with self.assertRaises(ReleaseError):checked_application_resources(directory,'staging','cloud',items)
+                for network in ['0.0.0.0/0','172.18.0.0/15','10.0.0.0/8']:
+                    path.write_text('progressiveDelivery: {enabled: true, backendsEnabled: true, apiServerCIDR: '+network+'}')
+                    with self.assertRaises(ReleaseError):checked_application_resources(directory,'staging','laptop',items)
+
     def test_disabled_mode_keeps_four_native_deployments(self):
         for environment in ['dev', 'staging', 'production']:
             with self.subTest(environment=environment):
