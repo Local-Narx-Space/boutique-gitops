@@ -30,12 +30,16 @@ echo "Manifest validation scope: $VALIDATION_SCOPE"
 PRIVATE_VALIDATION=$(mktemp -d)
 trap 'rm -rf "$PRIVATE_VALIDATION"' EXIT
 export KUBECONFIG="$PRIVATE_VALIDATION/unavailable"
-# Reuse the same strict/versioned schemas across profiles within this private run.
-mkdir -p "$PRIVATE_VALIDATION/schemas"
+# Keep downloaded upstream schemas between builds on the Jenkins agent. The
+# versioned path prevents schemas for a different Kubernetes version from
+# being accidentally reused; set KUBECONFORM_CACHE to override the location.
+KUBECONFORM_CACHE=${KUBECONFORM_CACHE:-"${HOME}/.cache/kubeconform/v0.6.7-k8s-1.34.0"}
+mkdir -p "$KUBECONFORM_CACHE"
+# Local CRD schemas are generated per run from protected, checksum-locked tools.
 # CRD schemas come from protected tools and checksum-locked upstream manifests.
 python3 "$TOOLS/../platform/argo-rollouts/make-schemas.py" "$PRIVATE_VALIDATION/rollouts"
 # Schema and image-policy checks consume exactly the same protected render.
-SCHEMA_ARGS=(-cache "$PRIVATE_VALIDATION/schemas"
+SCHEMA_ARGS=(-cache "$KUBECONFORM_CACHE"
   -schema-location "$PRIVATE_VALIDATION/rollouts/{{ .ResourceKind }}_{{ .ResourceAPIVersion }}.json"
   -schema-location default -strict -summary -kubernetes-version 1.34.0)
 for environment in "${environments[@]}"; do
