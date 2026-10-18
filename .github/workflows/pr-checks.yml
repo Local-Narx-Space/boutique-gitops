@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           repository: Local-Narx-Space/boutique-ci
-          ref: 5bd29e86dc2de31c8d7e7724c0d342950f56f955
+          ref: d1a404cf8076a21ce8da4ac9100d7b0d03075cf0
           path: trusted-ci
           persist-credentials: false
       - name: Install checksum-verified validation tools
