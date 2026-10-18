@@ -105,7 +105,7 @@ def select_release(root, service, environment, image, version, package):
 
 def approved_argo_source(source, environment):
     from render import value_files
-    if not isinstance(source,dict) or source.get('repoURL')!='https://github.com/subhankar12-spec/boutique-gitops.git' or source.get('targetRevision')!='main' or source.get('path')!=f'environments/{environment}':
+    if not isinstance(source,dict) or source.get('repoURL')!='https://github.com/Local-Narx-Space/boutique-gitops.git' or source.get('targetRevision')!='main' or source.get('path')!=f'environments/{environment}':
         raise ReleaseError('Argo must use the approved Helm environment on GitOps main')
     if set(source)!={'repoURL','targetRevision','path','helm'}:
         raise ReleaseError('Unapproved Argo source overrides')

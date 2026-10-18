@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-  - https://github.com/subhankar12-spec/boutique-gitops.git
+  - https://github.com/Local-Narx-Space/boutique-gitops.git
   destinations:
   - namespace: boutique-dev
     server: https://kubernetes.default.svc
@@ -23,7 +23,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-  - https://github.com/subhankar12-spec/boutique-gitops.git
+  - https://github.com/Local-Narx-Space/boutique-gitops.git
   destinations:
   - namespace: boutique-staging
     server: https://kubernetes.default.svc
@@ -41,7 +41,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-  - https://github.com/subhankar12-spec/boutique-gitops.git
+  - https://github.com/Local-Narx-Space/boutique-gitops.git
   destinations:
   - namespace: boutique-production
     server: https://kubernetes.default.svc

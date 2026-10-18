@@ -15,7 +15,7 @@ from render import value_files
 class ArgoSourceTests(unittest.TestCase):
     def source(self, environment, profile='laptop'):
         return {
-            'repoURL': 'https://github.com/subhankar12-spec/boutique-gitops.git',
+            'repoURL': 'https://github.com/Local-Narx-Space/boutique-gitops.git',
             'targetRevision': 'main', 'path': f'environments/{environment}',
             'helm': {'releaseName': f'boutique-{environment}',
                      'valueFiles': value_files(environment, profile)},

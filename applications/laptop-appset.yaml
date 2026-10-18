@@ -36,7 +36,7 @@ spec:
     spec:
       project: 'boutique-{{.environment}}'
       source:
-        repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+        repoURL: https://github.com/Local-Narx-Space/boutique-gitops.git
         targetRevision: main
         path: 'environments/{{.environment}}'
         helm:
