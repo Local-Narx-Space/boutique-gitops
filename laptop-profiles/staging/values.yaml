@@ -110,7 +110,8 @@ catalogue:
 progressiveDelivery:
   enabled: true
   backendsEnabled: true
-  apiServerCIDR: 172.18.0.3/32
+  # kind node addresses change on reboot; only API TCP/6443 is allowed.
+  apiServerCIDR: 172.18.0.0/16
 frontend:
   deployment:
     template:
