@@ -14,7 +14,7 @@ dependencies:
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-cart
   alias: cart
-  version: 0.1.0-619cbae91e44e48d5cfe454b3fe562d5da4d3091
+  version: 0.1.0-166ba3d782aa4eb95cfacd9f842bc2b331f76257
   repository: oci://ghcr.io/subhankar12-spec/charts
 - name: boutique-orders
   alias: orders
