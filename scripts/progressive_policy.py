@@ -41,7 +41,8 @@ def checked_application_resources(root, environment, profile, resources, helm='h
         return resources
     try:
         endpoint = ipaddress.ip_network(progressive['apiServerCIDR'])
-        if endpoint.version != 4 or endpoint.prefixlen != 32:
+        laptop_api_network = profile == 'laptop' and str(endpoint) == '172.18.0.0/16'
+        if endpoint.version != 4 or (endpoint.prefixlen != 32 and not laptop_api_network):
             raise ValueError()
         frontend = next(x for x in resources if x['kind'] == 'Deployment' and x['metadata']['name'] == 'frontend')
         spec = frontend['spec']
@@ -62,7 +63,7 @@ def checked_application_resources(root, environment, profile, resources, helm='h
         if service['spec']['ports'] != [{'name': 'http', 'port': 8080, 'targetPort': 'http'}]:
             raise ValueError()
     except (KeyError, StopIteration, ValueError, TypeError):
-        raise ReleaseError('Progressive frontend requires the approved selector/HTTP port, positive replicas and API /32')
+        raise ReleaseError('Progressive frontend requires the approved selector/HTTP port, positive replicas and an approved API network')
     safe_values = {
         'progressiveDelivery': {'enabled': True, 'backendsEnabled': backends, 'apiServerCIDR': str(endpoint)},
         'frontend': {'replicaCount': replicas, 'deployment': {'template': {'spec': {'containers': [{'env': [{'name': 'PUBLIC_ORIGIN', 'value': origin}]}]}}}},
