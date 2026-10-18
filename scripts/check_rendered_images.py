@@ -8,8 +8,43 @@ from pathlib import Path
 import yaml
 
 from render import render
-from progressive_policy import checked_application_resources
+from progressive_policy import checked_application_resources, merge
+from render import value_files
 from release_config import ROOT, ENVIRONMENTS, SERVICES, ReleaseError, selected_image
+
+
+def check_autoscaling(root, environment, profile, resources):
+    values = {}
+    for name in value_files(environment, profile):
+        merge(values, yaml.safe_load((Path(root) / 'environments' / environment / name).read_text()) or {})
+    config = values.get('frontendAutoscaling', {})
+    enabled = config.get('enabled', False)
+    hpas = [r for r in resources if r.get('kind') == 'HorizontalPodAutoscaler']
+    if type(enabled) is not bool:
+        raise ReleaseError('Frontend autoscaling switch must be boolean')
+    if not enabled:
+        if hpas:
+            raise ReleaseError('Unexpected autoscaler in a disabled profile')
+        return resources
+    minimum, maximum, cpu = (config.get(k) for k in ('minReplicas', 'maxReplicas', 'targetCPUUtilizationPercentage'))
+    if (profile != 'laptop' or environment not in ('staging', 'production')
+            or any(type(v) is not int for v in (minimum, maximum, cpu))
+            or not 2 <= minimum <= maximum <= 3 or not 1 <= cpu <= 100):
+        raise ReleaseError('Frontend autoscaling requires bounded QA/prod laptop settings')
+    progressive = values.get('progressiveDelivery', {}).get('enabled', False)
+    expected = {'apiVersion': 'autoscaling/v2', 'kind': 'HorizontalPodAutoscaler',
+        'metadata': {'name': 'frontend', 'namespace': 'boutique-' + environment},
+        'spec': {'scaleTargetRef': {'apiVersion': 'argoproj.io/v1alpha1' if progressive else 'apps/v1',
+                                  'kind': 'Rollout' if progressive else 'Deployment', 'name': 'frontend'},
+                 'minReplicas': minimum, 'maxReplicas': maximum,
+                 'metrics': [{'type': 'Resource', 'resource': {'name': 'cpu',
+                     'target': {'type': 'Utilization', 'averageUtilization': cpu}}}],
+                 'behavior': {key: {'stabilizationWindowSeconds': seconds,
+                                   'policies': [{'type': 'Pods', 'value': 1, 'periodSeconds': 60}]}
+                              for key, seconds in [('scaleUp', 30), ('scaleDown', 300)]}}}
+    if hpas != [expected]:
+        raise ReleaseError('Frontend autoscaler differs from the approved target/metrics/bounds')
+    return [r for r in resources if r.get('kind') != 'HorizontalPodAutoscaler']
 
 
 def check_profile(root, profile, environment, helm="helm", *, rendered=None):
@@ -18,6 +53,7 @@ def check_profile(root, profile, environment, helm="helm", *, rendered=None):
     if rendered is None:
         rendered=render(root,environment,profile_name,helm)
     resources=[item for item in yaml.safe_load_all(rendered) if item]
+    resources=check_autoscaling(root, environment, profile_name, resources)
     resources=checked_application_resources(root, environment, profile_name, resources, helm)
     allowed={'Namespace','NetworkPolicy','ResourceQuota','Deployment','Service','ServiceAccount','PodDisruptionBudget'}
     if parent=='laptop-profiles':allowed.update({'Ingress','StatefulSet'})

@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique-metrics-server
+  namespace: argocd
+spec:
+  sourceRepos:
+  - https://github.com/subhankar12-spec/boutique-gitops.git
+  destinations:
+  - namespace: kube-system
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  - group: apiregistration.k8s.io
+    kind: APIService
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ServiceAccount
+  - group: ''
+    kind: Service
+  - group: apps
+    kind: Deployment
+  - group: rbac.authorization.k8s.io
+    kind: RoleBinding
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-metrics-server
+  namespace: argocd
+spec:
+  project: boutique-metrics-server
+  source:
+    repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+    targetRevision: main
+    path: platform/metrics-server
+    helm:
+      releaseName: boutique-metrics-server
+      valueFiles:
+      - values-laptop.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ApplyOutOfSyncOnly=true

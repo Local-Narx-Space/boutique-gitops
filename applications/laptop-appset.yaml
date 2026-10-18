@@ -13,13 +13,16 @@ spec:
       - environment: dev
         autoSync: true
         progressiveDelivery: false
+        frontendAutoscaling: false
       # Enabled after namespace secrets and release selection were prepared.
       - environment: staging
         autoSync: true
         progressiveDelivery: true
+        frontendAutoscaling: true
       - environment: production
         autoSync: true
         progressiveDelivery: true
+        frontendAutoscaling: true
   syncPolicy:
     applicationsSync: create-update
     preserveResourcesOnDeletion: true
@@ -87,5 +90,12 @@ spec:
         name: {{ $service }}-preview
         jsonPointers:
         - /spec/selector/rollouts-pod-template-hash
+      {{- end }}
+      {{- if .frontendAutoscaling }}
+      - group: argoproj.io
+        kind: Rollout
+        name: frontend
+        jsonPointers:
+        - /spec/replicas
       {{- end }}
       {{- end }}

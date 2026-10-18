@@ -1,0 +1,2 @@
+# Only for self-signed kubelet serving certificates in local kind.
+insecureKubeletTLS: true

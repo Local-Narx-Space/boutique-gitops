@@ -110,7 +110,6 @@ catalogue:
 progressiveDelivery:
   enabled: true
   backendsEnabled: true
-  # kind node addresses change on reboot; only API TCP/6443 is allowed.
   apiServerCIDR: 172.18.0.0/16
 frontend:
   deployment:
@@ -178,7 +177,7 @@ frontend:
         - name: ghcr-pull
   pdb:
     enabled: false
-  replicaCount: 1
+  replicaCount: 2
 lab:
   enabled: false
 laptopIngress:
@@ -257,3 +256,5 @@ orders:
   pdb:
     enabled: false
   replicaCount: 1
+frontendAutoscaling:
+  enabled: true

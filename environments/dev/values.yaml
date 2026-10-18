@@ -83,3 +83,9 @@ localDevelopment:
 # Activate only after controller/verification prerequisites and reviewed migration.
 progressiveDelivery:
   enabled: false
+
+frontendAutoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 60
