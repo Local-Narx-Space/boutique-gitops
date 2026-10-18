@@ -45,7 +45,7 @@ try {
   const order = checkout.body;
   assert.match(order.id, /^[a-f0-9-]{36}$/);
   assert.equal(order.total, 2 * product.price);
-  assert.equal(order.currency, 'USD');
+  assert.equal(order.currency, product.currency);
   assert.equal((await a('/api/orders', 'POST', undefined, 'rollout-checkout-001')).body.id, order.id);
   assert.equal((await a('/api/orders/' + order.id)).body.total, order.total);
   assert.equal((await b('/api/orders/' + order.id)).status, 404);

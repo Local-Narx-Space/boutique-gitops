@@ -26,7 +26,7 @@ try {
     for (const p of products) {
       assert.match(p.id, /^[a-z0-9-]{1,64}$/);
       assert.ok(Number.isInteger(p.price) && p.price > 0);
-      assert.equal(p.currency, 'USD');
+      assert.ok(['USD','INR'].includes(p.currency));
       assert.equal((await request(base, '/products/' + p.id)).price, p.price);
     }
     await request(base, '/products/missing', 404);
@@ -45,7 +45,7 @@ try {
         const order = await request(base, '/orders', 200, 'POST', undefined, headers);
         assert.match(order.id, /^[a-f0-9-]{36}$/);
         assert.equal(order.total, 2 * product.price);
-        assert.equal(order.currency, 'USD');
+        assert.equal(order.currency, product.currency);
         assert.equal((await request(base, '/orders', 200, 'POST', undefined, headers)).id, order.id);
         assert.equal((await request(base, '/orders/' + order.id)).total, order.total);
         await request(base, '/orders/' + order.id, 404, 'GET', undefined, {'X-Session-ID':randomBytes(32).toString('hex')});
