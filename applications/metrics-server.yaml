@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-  - https://github.com/subhankar12-spec/boutique-gitops.git
+  - https://github.com/Local-Narx-Space/boutique-gitops.git
   destinations:
   - namespace: kube-system
     server: https://kubernetes.default.svc
@@ -34,7 +34,7 @@ metadata:
 spec:
   project: boutique-metrics-server
   source:
-    repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+    repoURL: https://github.com/Local-Narx-Space/boutique-gitops.git
     targetRevision: main
     path: platform/metrics-server
     helm:

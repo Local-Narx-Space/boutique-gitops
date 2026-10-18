@@ -25,7 +25,7 @@ groups:
       severity: critical
     annotations:
       summary: '{{ $labels.service }} is unavailable in {{ $labels.environment }}'
-      runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/docs/monitoring.md#service-down
+      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md#service-down
   - alert: BoutiqueHighErrorRate
     expr: (boutique:errors:rate5m / boutique:requests:rate5m > 0.05) and (boutique:requests:rate5m > 0.1)
     for: 5m
@@ -104,7 +104,7 @@ groups:
       incident_delivery: disabled
     annotations:
       summary: ServiceNow incident delivery has been delayed for over five minutes
-      runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
+      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
   - alert: IncidentDeliveryDeadLetters
     expr: boutique:incident:dead_letters > 0
     for: 1m
@@ -114,7 +114,7 @@ groups:
       incident_delivery: disabled
     annotations:
       summary: Incident delivery exhausted retries; operator recovery is required
-      runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
+      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
   - alert: IncidentWorkerStalled
     expr: boutique_incident_worker_heartbeat_age_seconds{job="incident-bridge"} > 60
     for: 2m
@@ -124,7 +124,7 @@ groups:
       incident_delivery: disabled
     annotations:
       summary: Incident worker {{ $labels.pod }} heartbeat is stale
-      runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
+      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
   - alert: IncidentBridgeUnavailable
     expr: up{job="incident-bridge"} == 0
     for: 2m
@@ -134,7 +134,7 @@ groups:
       incident_delivery: disabled
     annotations:
       summary: Incident bridge {{ $labels.pod }} cannot be scraped
-      runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
+      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
   - alert: IncidentBridgeMissing
     expr: absent(up{job="incident-bridge"})
     for: 2m
@@ -144,7 +144,7 @@ groups:
       incident_delivery: disabled
     annotations:
       summary: No incident bridge scrape targets are present
-      runbook_url: https://github.com/subhankar12-spec/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
+      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
 - name: progressive-delivery
   rules:
   - alert: BoutiqueReleaseAborted
@@ -157,7 +157,7 @@ groups:
     annotations:
       summary: Frontend release aborted in {{ $labels.environment }}; inspect stable
         traffic and failed analysis
-      runbook_url: https://github.com/subhankar12-spec/boutique-gitops/blob/main/docs/progressive-delivery.md#failed-release
+      runbook_url: https://github.com/Local-Narx-Space/boutique-gitops/blob/main/docs/progressive-delivery.md#failed-release
   - alert: BoutiqueRolloutControllerUnavailable
     expr: kube_deployment_status_replicas_available{deployment="argo-rollouts",namespace=~"boutique-(dev|staging|production)"}
       < 1
@@ -168,4 +168,4 @@ groups:
     annotations:
       summary: Progressive delivery controller unavailable in {{ $labels.namespace
         }}
-      runbook_url: https://github.com/subhankar12-spec/boutique-gitops/blob/main/docs/progressive-delivery.md#controller-unavailable
+      runbook_url: https://github.com/Local-Narx-Space/boutique-gitops/blob/main/docs/progressive-delivery.md#controller-unavailable

@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-  - https://github.com/subhankar12-spec/boutique-gitops.git
+  - https://github.com/Local-Narx-Space/boutique-gitops.git
   destinations:
   - namespace: monitoring
     server: https://kubernetes.default.svc
@@ -50,7 +50,7 @@ metadata:
 spec:
   project: boutique-monitoring-homelab
   source:
-    repoURL: https://github.com/subhankar12-spec/boutique-gitops.git
+    repoURL: https://github.com/Local-Narx-Space/boutique-gitops.git
     targetRevision: main
     path: monitoring
     helm:
