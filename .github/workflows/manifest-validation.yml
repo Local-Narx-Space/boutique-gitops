@@ -1,0 +1,49 @@
+name: GitOps manifest validation
+on:
+  pull_request_target:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: gitops-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    name: GitOps manifest validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      # pull_request_target loads this workflow from the protected base branch.
+      # Only these trusted scripts run; PR files are validation input, not code.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted-gitops
+          persist-credentials: false
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: Local-Narx-Space/boutique-ci
+          ref: d1a404cf8076a21ce8da4ac9100d7b0d03075cf0
+          path: trusted-ci
+          persist-credentials: false
+      - name: Install checksum-verified validation tools
+        run: |
+          python3 trusted-ci/jenkins/scripts/install-agent-tools.py --destination "$RUNNER_TEMP/tools" --only helm kubeconform
+          echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
+      - name: Install YAML parser
+        run: python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Validate Helm charts, Kubernetes schemas and rendered image policy
+        env:
+          KUBECONFORM_CACHE: ${{ runner.temp }}/kubeconform-cache
+        run: >-
+          bash trusted-gitops/scripts/validate.sh
+          "$GITHUB_WORKSPACE/candidate"
+          "${{ github.event.pull_request.base.sha }}"

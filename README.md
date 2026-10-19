@@ -6,11 +6,14 @@ select immutable image digests with versioned chart packages committed in Git.
 This keeps the package rendered by Argo in the reviewed tree; the OCI chart is
 also published for distribution.
 
-Jenkins opens PRs. The Jenkins `boutique-gitops-validate` job reports the
-**boutique/gitops-validation** check. Require it on main, protect production and
-configuration/tool changes with CODEOWNERS, and disallow protection bypass.
-With CI release automation activated, validated dev/staging bot release PRs
-merge automatically; production and rollback retain human review.
+GitHub Actions runs the `PR checks` and `GitOps manifest validation` checks for
+every PR. The full validator uses scripts from the protected base revision and
+treats PR files as data; it does not run scripts from the PR. Require both
+checks on main, protect production and configuration/tool changes with
+CODEOWNERS, and disallow protection bypass. Jenkins waits for those checks
+before handling release PRs. With release automation activated, eligible
+dev/staging bot PRs merge automatically; production and rollback retain human
+review.
 
 ## Environment profiles
 
