@@ -26,7 +26,7 @@ groups:
       severity: critical
     annotations:
       summary: '{{ $labels.service }} is unavailable in {{ $labels.environment }}'
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md#service-down
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: BoutiqueHighErrorRate
     expr: (boutique:errors:rate5m / boutique:requests:rate5m > 0.05) and (boutique:requests:rate5m
       > 0.1)
@@ -280,7 +280,7 @@ groups:
       slo: errors
     annotations:
       summary: Production API availability budget is burning at over 14.4x
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/slo.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#202-slos-and-budget-burn
   - alert: BoutiqueProductionAvailabilityBudgetBurn
     expr: (boutique:slo_api_errors:ratio30m{environment="production"} > 0.006) and
       (boutique:slo_api_errors:ratio6h{environment="production"} > 0.006) and (boutique:slo_api_eligible:increase6h{environment="production"}
@@ -291,7 +291,7 @@ groups:
       slo: errors
     annotations:
       summary: Production API availability budget is burning at over 6x
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/slo.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#202-slos-and-budget-burn
   - alert: BoutiqueProductionLatencyBudgetBurn
     expr: (boutique:slo_api_slow:ratio5m{environment="production"} > 0.144) and (boutique:slo_api_slow:ratio1h{environment="production"}
       > 0.144) and (boutique:slo_api_eligible:increase1h{environment="production"}
@@ -302,7 +302,7 @@ groups:
       slo: slow
     annotations:
       summary: Production API latency budget is burning at over 14.4x
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/slo.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#202-slos-and-budget-burn
   - alert: BoutiqueProductionLatencyBudgetBurn
     expr: (boutique:slo_api_slow:ratio30m{environment="production"} > 0.06) and (boutique:slo_api_slow:ratio6h{environment="production"}
       > 0.06) and (boutique:slo_api_eligible:increase6h{environment="production"}
@@ -313,7 +313,7 @@ groups:
       slo: slow
     annotations:
       summary: Production API latency budget is burning at over 6x
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/slo.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#202-slos-and-budget-burn
 - name: boutique-platform-health
   rules:
   - alert: KubernetesDeploymentUnavailable
@@ -324,7 +324,7 @@ groups:
     annotations:
       summary: Deployment {{ $labels.deployment }} is below desired replicas in {{
         $labels.namespace }}
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: KubernetesPodCrashLoop
     expr: sum by (cluster, environment, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[15m]))
       > 3
@@ -333,7 +333,7 @@ groups:
       severity: warning
     annotations:
       summary: Pod {{ $labels.pod }} is restarting repeatedly
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: KubernetesPodPending
     expr: kube_pod_status_phase{phase="Pending"} == 1
     for: 10m
@@ -341,7 +341,7 @@ groups:
       severity: warning
     annotations:
       summary: Pod {{ $labels.pod }} remains Pending
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: KubernetesPVCNotBound
     expr: kube_persistentvolumeclaim_status_phase{phase=~"Pending|Lost"} == 1
     for: 5m
@@ -349,7 +349,7 @@ groups:
       severity: critical
     annotations:
       summary: PVC {{ $labels.persistentvolumeclaim }} is not Bound
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: NodeMemoryPressure
     expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
     for: 5m
@@ -357,7 +357,7 @@ groups:
       severity: warning
     annotations:
       summary: Node {{ $labels.node }} has less than ten percent memory available
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: NodeFilesystemSpaceLow
     expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes
       < 0.1) and on(instance,device,mountpoint) (node_filesystem_readonly == 0)
@@ -367,7 +367,7 @@ groups:
     annotations:
       summary: Node {{ $labels.node }} filesystem {{ $labels.mountpoint }} is low
         on space
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: MonitoringScrapeFailed
     expr: up{job=~"prometheus|alertmanager|loki|alloy|node-exporter|kube-state-metrics|kube-state-metrics-self|http-probe"}
       == 0
@@ -376,7 +376,7 @@ groups:
       severity: critical
     annotations:
       summary: Monitoring target {{ $labels.job }} cannot be scraped
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: MonitoringTargetMissing
     expr: absent(up{job="loki"})
     for: 5m
@@ -387,7 +387,7 @@ groups:
       cluster: homelab
     annotations:
       summary: No loki targets are discovered
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: MonitoringTargetMissing
     expr: absent(up{job="alloy"})
     for: 5m
@@ -398,7 +398,7 @@ groups:
       cluster: homelab
     annotations:
       summary: No alloy targets are discovered
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: MonitoringTargetMissing
     expr: absent(up{job="node-exporter"})
     for: 5m
@@ -409,7 +409,7 @@ groups:
       cluster: homelab
     annotations:
       summary: No node-exporter targets are discovered
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: MonitoringTargetMissing
     expr: absent(up{job="kube-state-metrics"})
     for: 5m
@@ -420,7 +420,7 @@ groups:
       cluster: homelab
     annotations:
       summary: No kube-state-metrics targets are discovered
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: NodeExporterCoverageGap
     expr: kube_daemonset_status_number_available{daemonset="node-exporter",namespace="monitoring-logs"}
       < kube_daemonset_status_desired_number_scheduled{daemonset="node-exporter",namespace="monitoring-logs"}
@@ -429,7 +429,7 @@ groups:
       severity: warning
     annotations:
       summary: Node exporter is missing from one or more eligible nodes
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: AlloyCoverageGap
     expr: kube_daemonset_status_number_available{daemonset="alloy",namespace="monitoring-logs"}
       < kube_daemonset_status_desired_number_scheduled{daemonset="alloy",namespace="monitoring-logs"}
@@ -438,7 +438,7 @@ groups:
       severity: warning
     annotations:
       summary: Alloy log collection is missing from one or more eligible nodes
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: AlloyDroppedLogs
     expr: sum by (cluster, environment, node) (increase(loki_write_dropped_entries_total[10m]))
       > 0
@@ -447,7 +447,7 @@ groups:
       severity: critical
     annotations:
       summary: Alloy has dropped log entries
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: KubeStateMetricsDiscoveryErrors
     expr: (sum by (cluster, environment) (increase(kube_state_metrics_list_total{result="error"}[10m]))
       > 0) or (sum by (cluster, environment) (increase(kube_state_metrics_watch_total{result="error"}[10m]))
@@ -457,7 +457,7 @@ groups:
       severity: warning
     annotations:
       summary: Kubernetes workload state collection is failing
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: PrometheusConfigReloadFailed
     expr: prometheus_config_last_reload_successful == 0
     for: 2m
@@ -465,7 +465,7 @@ groups:
       severity: critical
     annotations:
       summary: Prometheus failed to reload its configuration
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: PrometheusScrapePressure
     expr: prometheus_target_interval_length_seconds{quantile="0.99"} > 30
     for: 10m
@@ -473,7 +473,7 @@ groups:
       severity: warning
     annotations:
       summary: Prometheus scrape interval is falling behind
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: BoutiquePublicEndpointUnavailable
     expr: probe_success{job="http-probe"} == 0
     for: 2m
@@ -481,7 +481,7 @@ groups:
       severity: critical
     annotations:
       summary: Public HTTPS readiness check failed in {{ $labels.environment }}
-      runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/monitoring.md
+      runbook_url: https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md#201-service-down-and-rollout-failure
   - alert: BoutiquePublicCertificateExpiring
     expr: probe_ssl_earliest_cert_expiry{job="http-probe"} - time() < 14 * 86400
     for: 10m

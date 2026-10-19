@@ -46,7 +46,7 @@ python3 scripts/render.py dev --profile laptop --lint
 python3 scripts/render.py dev --profile laptop
 ```
 
-See [the deployment guide](https://github.com/Local-Narx-Space/boutique-platform/blob/main/docs/deploy-cicd-kind.md).
+See [the deployment guide](https://github.com/Local-Narx-Space/boutique-ci/blob/main/DOC.md).
 Never commit credentials. AWS uses scoped ESO/IRSA; laptop secrets are generated
 in Kubernetes by the platform secret helper and preserved on reruns.
 
