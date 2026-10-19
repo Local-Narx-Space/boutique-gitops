@@ -151,7 +151,14 @@
       "properties": {
         "cidr": {
           "type": "string",
-          "pattern": "^[0-9.]+/32$"
+          "anyOf": [
+            {
+              "pattern": "^[0-9.]+/32$"
+            },
+            {
+              "const": "172.18.0.0/16"
+            }
+          ]
         },
         "port": {
           "type": "integer",
@@ -245,6 +252,55 @@
               "nonprod",
               "production"
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "profile": {
+            "not": {
+              "const": "homelab"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kubernetesApiEndpoint": {
+            "properties": {
+              "cidr": {
+                "pattern": "^[0-9.]+/32$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "kubernetesApiEndpoint"
+        ],
+        "properties": {
+          "kubernetesApiEndpoint": {
+            "properties": {
+              "cidr": {
+                "const": "172.18.0.0/16"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kubernetesApiEndpoint": {
+            "properties": {
+              "port": {
+                "const": 6443
+              }
+            }
           }
         }
       }
