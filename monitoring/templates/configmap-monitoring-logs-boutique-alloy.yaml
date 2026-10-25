@@ -4,4 +4,4 @@ metadata:
   name: boutique-alloy
   namespace: monitoring-logs
 data:
-  config.alloy: {{ (.Files.Get (printf "files/%s/boutique-alloy/config.alloy" .Values.profile)) | toJson }}
+  config.alloy: {{ (tpl (.Files.Get (printf "files/%s/boutique-alloy/config.alloy" .Values.profile)) .) | toJson }}

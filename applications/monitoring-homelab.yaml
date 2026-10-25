@@ -6,6 +6,7 @@ metadata:
 spec:
   sourceRepos:
   - https://github.com/Local-Narx-Space/boutique-gitops.git
+  - https://github.com/Narx-Space-Prod/platform-gitops.git
   destinations:
   - namespace: monitoring
     server: https://kubernetes.default.svc
@@ -16,6 +17,10 @@ spec:
   - namespace: boutique-staging
     server: https://kubernetes.default.svc
   - namespace: boutique-production
+    server: https://kubernetes.default.svc
+  - namespace: commerce-dev
+    server: https://kubernetes.default.svc
+  - namespace: commerce-qa
     server: https://kubernetes.default.svc
   clusterResourceWhitelist:
   - group: ''
@@ -49,17 +54,21 @@ metadata:
   namespace: argocd
 spec:
   project: boutique-monitoring-homelab
-  source:
-    repoURL: https://github.com/Local-Narx-Space/boutique-gitops.git
-    targetRevision: main
-    path: monitoring
-    helm:
-      releaseName: boutique-monitoring-homelab
-      valueFiles:
-      - profiles/homelab/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
     syncOptions:
     - ApplyOutOfSyncOnly=true
+  sources:
+  - repoURL: https://github.com/Local-Narx-Space/boutique-gitops.git
+    targetRevision: main
+    path: monitoring
+    helm:
+      releaseName: boutique-monitoring-homelab
+      valueFiles:
+      - profiles/homelab/values.yaml
+      - $narx/monitoring/local-values.yaml
+  - repoURL: https://github.com/Narx-Space-Prod/platform-gitops.git
+    targetRevision: main
+    ref: narx

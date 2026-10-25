@@ -2,23 +2,23 @@ groups:
 - name: boutique
   rules:
   - record: boutique:incident:pending
-    expr: max by (cluster, environment) (boutique_incident_pending{job="incident-bridge"})
+    expr: max by (cluster, environment) (boutique_incident_pending{project="boutique",job="incident-bridge"})
   - record: boutique:incident:oldest_seconds
-    expr: max by (cluster, environment) (boutique_incident_oldest_seconds{job="incident-bridge"})
+    expr: max by (cluster, environment) (boutique_incident_oldest_seconds{project="boutique",job="incident-bridge"})
   - record: boutique:incident:dead_letters
-    expr: max by (cluster, environment) (boutique_incident_dead_letters{job="incident-bridge"})
+    expr: max by (cluster, environment) (boutique_incident_dead_letters{project="boutique",job="incident-bridge"})
   - record: boutique:incident:retry_attempts
-    expr: max by (cluster, environment) (boutique_incident_retry_attempts{job="incident-bridge"})
+    expr: max by (cluster, environment) (boutique_incident_retry_attempts{project="boutique",job="incident-bridge"})
   - record: boutique:requests:rate5m
-    expr: sum by (service, environment, cluster) (rate(boutique_http_requests_total[5m]))
-      or sum by (service, environment, cluster) (rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[5m]))
+    expr: sum by (service, environment, cluster) (rate(boutique_http_requests_total{project="boutique"}[5m]))
+      or sum by (service, environment, cluster) (rate(http_server_requests_seconds_count{project="boutique",uri!~"/actuator.*"}[5m]))
   - record: boutique:errors:rate5m
-    expr: sum by (service, environment, cluster) (rate(boutique_http_requests_total{status=~"5.."}[5m]))
-      or sum by (service, environment, cluster) (rate(http_server_requests_seconds_count{status=~"5..",uri!~"/actuator.*"}[5m]))
+    expr: sum by (service, environment, cluster) (rate(boutique_http_requests_total{project="boutique",status=~"5.."}[5m]))
+      or sum by (service, environment, cluster) (rate(http_server_requests_seconds_count{project="boutique",status=~"5..",uri!~"/actuator.*"}[5m]))
       or (0 * boutique:requests:rate5m)
   - record: boutique:latency:p95
-    expr: histogram_quantile(0.95, sum by (le, service, environment, cluster) (rate(boutique_http_request_duration_seconds_bucket[5m])))
-      or histogram_quantile(0.95, sum by (le, service, environment, cluster) (rate(http_server_requests_seconds_bucket{uri!~"/actuator.*"}[5m])))
+    expr: histogram_quantile(0.95, sum by (le, service, environment, cluster) (rate(boutique_http_request_duration_seconds_bucket{project="boutique"}[5m])))
+      or histogram_quantile(0.95, sum by (le, service, environment, cluster) (rate(http_server_requests_seconds_bucket{project="boutique",uri!~"/actuator.*"}[5m])))
   - alert: BoutiqueServiceDown
     expr: up{job=~"boutique|orders"} == 0
     for: 2m
@@ -78,8 +78,8 @@ groups:
       summary: Incident delivery exhausted retries; operator recovery is required
       runbook_url: https://github.com/Local-Narx-Space/boutique-platform/blob/main/monitoring/incident-bridge/README.md#delivery-guarantees-and-failure-recovery
   - alert: IncidentWorkerStalled
-    expr: boutique_incident_worker_heartbeat_age_seconds{job="incident-bridge"} >
-      60
+    expr: boutique_incident_worker_heartbeat_age_seconds{project="boutique",job="incident-bridge"}
+      > 60
     for: 2m
     labels:
       severity: critical
@@ -231,45 +231,45 @@ groups:
 - name: boutique-production-slos
   rules:
   - record: boutique:slo_api_eligible:increase6h
-    expr: sum by (cluster, environment, service) (increase(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h]))
+    expr: sum by (cluster, environment, service) (increase(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h]))
   - record: boutique:slo_api_eligible:increase1h
-    expr: sum by (cluster, environment, service) (increase(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h]))
+    expr: sum by (cluster, environment, service) (increase(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h]))
   - record: boutique:slo_api_requests:rate5m
-    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[5m]))
+    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[5m]))
   - record: boutique:slo_api_errors:ratio5m
-    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[5m])))
-      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[5m])))))
-      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[5m])))
+    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[5m])))
+      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[5m])))))
+      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[5m])))
   - record: boutique:slo_api_slow:ratio5m
-    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[5m])))
-      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[5m]))))
+    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[5m])))
+      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[5m]))))
   - record: boutique:slo_api_requests:rate30m
-    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[30m]))
+    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[30m]))
   - record: boutique:slo_api_errors:ratio30m
-    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[30m])))
-      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[30m])))))
-      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[30m])))
+    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[30m])))
+      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[30m])))))
+      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[30m])))
   - record: boutique:slo_api_slow:ratio30m
-    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[30m])))
-      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[30m]))))
+    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[30m])))
+      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[30m]))))
   - record: boutique:slo_api_requests:rate1h
-    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h]))
+    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h]))
   - record: boutique:slo_api_errors:ratio1h
-    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[1h])))
-      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h])))))
-      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h])))
+    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[1h])))
+      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h])))))
+      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[1h])))
   - record: boutique:slo_api_slow:ratio1h
-    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[1h])))
-      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[1h]))))
+    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[1h])))
+      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[1h]))))
   - record: boutique:slo_api_requests:rate6h
-    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h]))
+    expr: sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h]))
   - record: boutique:slo_api_errors:ratio6h
-    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[6h])))
-      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h])))))
-      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h])))
+    expr: ((sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"5.."}[6h])))
+      or (0 * (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h])))))
+      / (sum by (cluster, environment, service) (rate(boutique_http_requests_total{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[235].."}[6h])))
   - record: boutique:slo_api_slow:ratio6h
-    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[6h])))
-      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[6h]))))
+    expr: 1 - ((sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_bucket{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23]..",le="1"}[6h])))
+      / (sum by (cluster, environment, service) (rate(boutique_http_request_duration_seconds_count{project="boutique",service="frontend",route=~"/api/(products|cart|cart/items/:product|orders|orders/:id)",method=~"GET|POST|PUT|DELETE",status=~"[23].."}[6h]))))
   - alert: BoutiqueProductionAvailabilityBudgetBurn
     expr: (boutique:slo_api_errors:ratio5m{environment="production"} > 0.0144) and
       (boutique:slo_api_errors:ratio1h{environment="production"} > 0.0144) and (boutique:slo_api_eligible:increase1h{environment="production"}

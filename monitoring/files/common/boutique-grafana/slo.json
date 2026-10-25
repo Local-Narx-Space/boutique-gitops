@@ -34,7 +34,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "1 - ((sum(increase(boutique_http_requests_total{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"5..\"}[30d])) or (0 * sum(increase(boutique_http_requests_total{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[235]..\"}[30d])))) / sum(increase(boutique_http_requests_total{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[235]..\"}[30d])))",
+          "expr": "1 - ((sum(increase(boutique_http_requests_total{project=\"boutique\",service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"5..\"}[30d])) or (0 * sum(increase(boutique_http_requests_total{project=\"boutique\",service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[235]..\"}[30d])))) / sum(increase(boutique_http_requests_total{project=\"boutique\",service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[235]..\"}[30d])))",
           "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
         }
       ],
@@ -69,7 +69,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(boutique_http_request_duration_seconds_bucket{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[23]..\",le=\"1\"}[30d])) / sum(increase(boutique_http_request_duration_seconds_count{service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[23]..\"}[30d]))",
+          "expr": "sum(increase(boutique_http_request_duration_seconds_bucket{project=\"boutique\",service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[23]..\",le=\"1\"}[30d])) / sum(increase(boutique_http_request_duration_seconds_count{project=\"boutique\",service=\"frontend\",environment=\"production\",route=~\"/api/(products|cart|cart/items/:product|orders|orders/:id)\",method=~\"GET|POST|PUT|DELETE\",status=~\"[23]..\"}[30d]))",
           "legendFormat": "{{environment}} {{deployment}} {{node}} {{job}}"
         }
       ],

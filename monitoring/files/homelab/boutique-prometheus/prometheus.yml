@@ -48,6 +48,8 @@ scrape_configs:
     target_label: pod
   - target_label: cluster
     replacement: homelab
+  - target_label: project
+    replacement: boutique
 - job_name: orders
   metrics_path: /actuator/prometheus
   kubernetes_sd_configs:
@@ -83,6 +85,8 @@ scrape_configs:
     target_label: pod
   - target_label: cluster
     replacement: homelab
+  - target_label: project
+    replacement: boutique
 - job_name: prometheus
   static_configs:
   - targets:
@@ -142,9 +146,14 @@ scrape_configs:
   metric_relabel_configs:
   - source_labels:
     - namespace
-    regex: boutique-(.*)
+    regex: (?:boutique|commerce)-(.*)
     target_label: environment
     replacement: $1
+  - source_labels:
+    - namespace
+    regex: commerce-.*
+    replacement: narx-commerce
+    target_label: project
 - job_name: kube-state-metrics-self
   static_configs:
   - targets:

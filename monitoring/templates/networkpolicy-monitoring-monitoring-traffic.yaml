@@ -48,6 +48,19 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: boutique-production
+  {{- if .Values.integration.namespaces }}
+  - to:
+    {{- range .Values.integration.namespaces }}
+    - namespaceSelector:
+        matchLabels: {kubernetes.io/metadata.name: {{ . | quote }}}
+    {{- end }}
+    ports:
+    - {protocol: TCP, port: 8080}
+    - {protocol: TCP, port: 8081}
+    - {protocol: TCP, port: 8082}
+    - {protocol: TCP, port: 8083}
+    - {protocol: TCP, port: 8090}
+  {{- end }}
   - ports:
     - port: 443
       protocol: TCP
@@ -82,6 +95,9 @@ spec:
     ports:
     - protocol: TCP
       port: 8090
+  {{- with .Values.integration.egressRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
   ingress:
   - from:
     - namespaceSelector:

@@ -29,7 +29,7 @@ spec:
       - name: kube-state-metrics
         image: {{ .Values.kubernetesMetrics.kubeStateMetricsImage | quote }}
         args:
-        - --namespaces={{ join "," (concat .Values.applicationNamespaces (list "monitoring" "monitoring-logs")) }}
+        - --namespaces={{ join "," (concat (concat .Values.applicationNamespaces .Values.integration.namespaces) (list "monitoring" "monitoring-logs")) }}
         - --resources=pods,deployments,statefulsets,daemonsets,replicasets,persistentvolumeclaims,jobs
         ports:
         - {name: metrics, containerPort: 8080}
@@ -59,7 +59,7 @@ spec:
   ports:
   - {name: metrics, port: 8080, targetPort: metrics}
   - {name: telemetry, port: 8081, targetPort: telemetry}
-{{- range $namespace := concat .Values.applicationNamespaces (list "monitoring" "monitoring-logs") }}
+{{- range $namespace := concat (concat .Values.applicationNamespaces .Values.integration.namespaces) (list "monitoring" "monitoring-logs") }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

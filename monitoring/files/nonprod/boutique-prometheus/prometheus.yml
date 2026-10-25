@@ -47,6 +47,8 @@ scrape_configs:
     target_label: pod
   - target_label: cluster
     replacement: nonprod
+  - target_label: project
+    replacement: boutique
 - job_name: orders
   metrics_path: /actuator/prometheus
   kubernetes_sd_configs:
@@ -84,6 +86,8 @@ scrape_configs:
     target_label: pod
   - target_label: cluster
     replacement: nonprod
+  - target_label: project
+    replacement: boutique
 - job_name: prometheus
   static_configs:
   - targets:

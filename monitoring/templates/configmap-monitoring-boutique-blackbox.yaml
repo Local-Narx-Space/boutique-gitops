@@ -7,6 +7,14 @@ metadata:
 data:
   blackbox.yml: |
     modules:
+      http_ready:
+        prober: http
+        timeout: 8s
+        http:
+          method: GET
+          preferred_ip_protocol: ip4
+          valid_status_codes: [200]
+          follow_redirects: false
       https_ready:
         prober: http
         timeout: 8s

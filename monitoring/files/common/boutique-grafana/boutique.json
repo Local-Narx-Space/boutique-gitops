@@ -198,7 +198,7 @@
       },
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{area=\"heap\"}",
+          "expr": "jvm_memory_used_bytes{project=\"boutique\",area=\"heap\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{environment}}"
         }
@@ -220,7 +220,7 @@
       },
       "targets": [
         {
-          "expr": "boutique_node_heap_bytes",
+          "expr": "boutique_node_heap_bytes{project=\"boutique\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{environment}}"
         }
@@ -242,7 +242,7 @@
       },
       "targets": [
         {
-          "expr": "{environment=~\"$environment\",service=~\"frontend|catalogue|cart|orders\"}",
+          "expr": "{project!=\"narx-commerce\",environment=~\"$environment\",service=~\"frontend|catalogue|cart|orders\"}",
           "refId": "A"
         }
       ]
@@ -285,7 +285,7 @@
       },
       "targets": [
         {
-          "expr": "boutique_incident_worker_heartbeat_age_seconds{job=\"incident-bridge\"}",
+          "expr": "boutique_incident_worker_heartbeat_age_seconds{project=\"boutique\",job=\"incident-bridge\"}",
           "refId": "A",
           "legendFormat": "{{cluster}} {{pod}}"
         }
