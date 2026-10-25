@@ -4,6 +4,7 @@ route:
   receiver: slack
   group_by:
   - cluster
+  - project
   - environment
   - service
   - alertname
@@ -22,7 +23,7 @@ route:
     - environment="production"
   - receiver: slack-nonprod
     matchers:
-    - environment=~"dev|staging"
+    - environment=~"dev|qa|staging"
 inhibit_rules:
 - source_matchers:
   - severity="critical"
@@ -30,6 +31,7 @@ inhibit_rules:
   - severity="warning"
   equal:
   - cluster
+  - project
   - environment
   - service
 receivers:

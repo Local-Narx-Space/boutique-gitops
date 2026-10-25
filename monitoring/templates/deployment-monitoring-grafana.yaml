@@ -89,6 +89,11 @@ spec:
           name: config
           subPath: slo.json
         {{- end }}
+        {{- range $name, $_ := .Values.integration.dashboards }}
+        - mountPath: /var/lib/grafana/dashboards/{{ $name }}.json
+          name: config
+          subPath: {{ $name }}.json
+        {{- end }}
       securityContext:
         fsGroup: 472
         runAsGroup: 472

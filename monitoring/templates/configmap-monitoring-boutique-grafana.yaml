@@ -21,3 +21,8 @@ data:
   {{- end }}
   dashboards.yml: {{ (.Files.Get "files/common/boutique-grafana/dashboards.yml") | toJson }}
   datasources.yml: {{ (.Files.Get "files/common/boutique-grafana/datasources.yml") | toJson }}
+
+  {{- range $name, $dashboard := .Values.integration.dashboards }}
+  {{- if not (regexMatch "^[a-zA-Z0-9_-]+$" $name) }}{{ fail "integration dashboard names must be safe file names" }}{{ end }}
+  {{ $name }}.json: {{ ($dashboard | toJson) | toJson }}
+  {{- end }}

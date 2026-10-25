@@ -230,6 +230,46 @@
     "productionSlackWebhookKey": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "namespaces": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "commerce-dev",
+              "commerce-qa"
+            ]
+          }
+        },
+        "scrapeConfigs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "ruleGroups": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "dashboards": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "egressRules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
     }
   },
   "allOf": [

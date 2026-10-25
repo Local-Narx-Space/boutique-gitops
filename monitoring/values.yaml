@@ -187,3 +187,11 @@ prometheusStorage:
   retentionTime: 7d
   retentionSize: 4GB
 productionSlackWebhookKey: slack_webhook
+
+# Optional project additions are supplied by a reviewed second Git source.
+integration:
+  namespaces: []
+  scrapeConfigs: []
+  ruleGroups: []
+  dashboards: {}
+  egressRules: []
